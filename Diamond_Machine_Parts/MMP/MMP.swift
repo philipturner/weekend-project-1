@@ -8,11 +8,14 @@ struct MMP {
     // Parsing the string:
     // - Each space separates a word
     // - Omit parentheses and commas
+    
     let lines = string.split(separator: "\n")
+    
+    var pendingWord: [UInt8] = []
     for var line in lines {
       var newWords: [String] = []
+      
       line.withUTF8 {
-        var pendingWord: [UInt8] = []
         for character in $0 {
           if character == 0x20 {
             newWords.append(String(
@@ -35,6 +38,7 @@ struct MMP {
         if pendingWord.count > 0 {
           newWords.append(String(
             decoding: pendingWord, as: UTF8.self))
+          pendingWord.removeAll(keepingCapacity: true)
         }
       }
       guard newWords.count > 0 else {
@@ -48,16 +52,16 @@ struct MMP {
       }
       
       if newWords[0] == "atom" {
-        let subsequence = Array(newWords[2...])
-        let atom = Self.createAtom(words: subsequence)
-//        let atom = SIMD4<Float>(
-//          Float(newWords[3])!,
-//          Float(newWords[4])!,
-//          Float(newWords[5])!,
-//          Float(newWords[2])!
-//        )
+        var position = SIMD3(
+          Float(newWords[3])!,
+          Float(newWords[4])!,
+          Float(newWords[5])!)
+        position /= 10_000
         
-        // WARNING: Serialized MMP files are 1-indexed.
+        let element = Float(newWords[2])!
+        let atom = SIMD4(position, element)
+        
+        // Using 1-indexed notation.
         guard let atomID = UInt32(newWords[1]) else {
           fatalError("Could not parse word.")
         }
@@ -70,7 +74,7 @@ struct MMP {
       if newWords[0] == "bond1" {
         let subsequence = Array(newWords[1...])
         for word in subsequence {
-          // Using 1-index notation.
+          // Using 1-indexed notation.
           let atomID = UInt32(topology.atoms.count)
           guard let otherAtomID = UInt32(word) else {
             fatalError("Could not parse word.")
@@ -86,26 +90,5 @@ struct MMP {
         }
       }
     }
-  }
-}
-
-extension MMP {
-  private static func createAtom(
-    words: [String]
-  ) -> Atom {
-    guard let element = Float(words[0]),
-          let x = Float(words[1]),
-          let y = Float(words[2]),
-          let z = Float(words[3]) else {
-      fatalError("Could not parse words.")
-    }
-    
-    // Unit conversions.
-    var position = SIMD3(x, y, z)
-    position /= 10_000
-    
-    return Atom(
-      position: position,
-      atomicNumber: UInt8(element))
   }
 }
