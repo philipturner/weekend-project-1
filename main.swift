@@ -57,9 +57,9 @@ func createApplication() -> Application {
 }
 let application = createApplication()
 
+
 for atomID in mmp.topology.atoms.indices {
-  var atom = mmp.topology.atoms[atomID]
-  atom.position *= 1.3
+  let atom = mmp.topology.atoms[atomID]
   application.atoms[atomID] = atom
 }
 
@@ -98,12 +98,12 @@ func modifyCamera() {
   // alternative limits to FOV
   // 1x3_beam,     35°, (350 Å) 35 nm -> 111 nm
   // 10nm_bar_pin, 20°, (140 Å) 14 nm -> 79 nm
-  let fovAngleVertical = Float.pi / 180 * 30
-  var cameraDistance = namedView.scale
-  cameraDistance /= tan(fovAngleVertical / 2)
+//  let fovAngleVertical = Float.pi / 180 * 30
+//  var cameraDistance = namedView.scale
+//  cameraDistance /= tan(fovAngleVertical / 2)
   
-//  let fovAngleVertical = Float.pi / 180 * 60
-//  let cameraDistance = Float(40)
+  let fovAngleVertical = Float.pi / 180 * 60
+  let cameraDistance = Float(40)
   
   var position = namedView.pov
 //  var position = SIMD3<Float>(0, 0, 0)
