@@ -55,7 +55,7 @@ struct MMP {
         topology.atoms.append(atom)
       }
       
-      if newWords[0] == "bond" {
+      if newWords[0] == "bond1" {
         let subsequence = Array(newWords[1...])
         for word in subsequence {
           // Using 1-index notation.
@@ -66,6 +66,8 @@ struct MMP {
           guard otherAtomID < atomID else {
             fatalError("Invalid other atom ID.")
           }
+          
+          print("hello world")
         }
       }
     }
