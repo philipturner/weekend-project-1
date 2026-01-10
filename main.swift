@@ -50,7 +50,7 @@ func createApplication() -> Application {
   
   applicationDesc.addressSpaceSize = 4_000_000
   applicationDesc.voxelAllocationSize = 500_000_000
-  applicationDesc.worldDimension = 384
+  applicationDesc.worldDimension = 64
   let application = Application(descriptor: applicationDesc)
   
   return application
@@ -69,75 +69,26 @@ func modifyCamera() {
     fatalError("Could not retrieve named view.")
   }
   
-//  let rotation = namedView.quat
-  
-  var axis = SIMD3<Float>(0.011551, -0.677199, -0.007701)
-  axis /= (axis * axis).sum().squareRoot()
-  var rotation = Quaternion<Float>(
-    angle: Float.pi / 180 * 85.3,
-    axis: axis
-  )
-  rotation = namedView.quat
-//  rotation = rotation.normalized!
-  
-  /*
-   
-   (0.7355061, 0.011554015, -0.67737573, -0.0077030105)
-   (0.735668, 0.011551, -0.677199, -0.007701)
-   1.0
-   1.0
-   0.9999999
-   SIMD3<Float>(0.08220553, -0.026984042, 0.99625003)
-   SIMD3<Float>(-0.0043215957, 0.99961436, 0.027431762)
-   SIMD3<Float>(-0.996606, -0.006560432, 0.08205721)
-   SIMD3<Float>(-81.34206, -0.115432054, 13.531528)
-   
-   (0.735668, 0.011551, -0.677199, -0.007701)
-   (0.735668, 0.011551, -0.677199, -0.007701)
-   0.9999973
-   0.99999726
-   0.9999973
-   SIMD3<Float>(0.08268306, -0.02697541, 0.9962094)
-   SIMD3<Float>(-0.0043138918, 0.99961317, 0.02742562)
-   SIMD3<Float>(-0.9965652, -0.0065651825, 0.08253482)
-   SIMD3<Float>(-81.3388, -0.11581215, 13.569738)
-   
-   (0.7356685, 0.011551008, -0.6771994, -0.0077010053)
-   (0.735668, 0.011551, -0.677199, -0.007701)
-   0.9999998
-   0.9999997
-   0.9999999
-   SIMD3<Float>(0.082683146, -0.026975445, 0.99621063)
-   SIMD3<Float>(-0.0043138973, 0.9996144, 0.027425658)
-   SIMD3<Float>(-0.9965665, -0.006565192, 0.08253491)
-   SIMD3<Float>(-81.3389, -0.11581281, 13.569745)
-   */
-  
-  application.camera.basis.0 = rotation.act(on: SIMD3(1, 0, 0))
-  application.camera.basis.1 = rotation.act(on: SIMD3(0, 1, 0))
-  application.camera.basis.2 = rotation.act(on: SIMD3(0, 0, 1))
-  print()
-  print(rotation)
-  print(namedView.quat)
-  print((application.camera.basis.0 * application.camera.basis.0).sum())
-  print((application.camera.basis.1 * application.camera.basis.1).sum())
-  print((application.camera.basis.2 * application.camera.basis.2).sum())
-  print(application.camera.basis.0)
-  print(application.camera.basis.1)
-  print(application.camera.basis.2)
+  let rotation = namedView.quat
+  func rotate(_ vector: SIMD3<Float>) -> SIMD3<Float> {
+    var output = rotation.act(on: vector)
+    output /= (output * output).sum().squareRoot()
+    return output
+  }
+  application.camera.basis.0 = rotate(SIMD3(1, 0, 0))
+  application.camera.basis.1 = rotate(SIMD3(0, 1, 0))
+  application.camera.basis.2 = rotate(SIMD3(0, 0, 1))
   
   // NanoEngineer might be entirely orthographic projection.
-//  let fovAngleVertical = Float.pi / 180 * 20
+  let fovAngleVertical = Float.pi / 180 * 10
   var cameraDistance = namedView.scale
-  cameraDistance = 80
-//  cameraDistance /= tan(fovAngleVertical / 2)
-//  print(cameraDistance)
+  cameraDistance /= tan(fovAngleVertical / 2)
   
   var position = namedView.pov
   position += rotation.act(on: SIMD3(0, 0, cameraDistance))
-  application.camera.position = position
-  application.camera.fovAngleVertical = Float.pi / 180 * 20
   print(position)
+  application.camera.position = position
+  application.camera.fovAngleVertical = fovAngleVertical
 }
 
 application.run {
