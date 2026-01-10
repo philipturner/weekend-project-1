@@ -7,7 +7,7 @@ import xTB
 
 var path = FileManager.default.currentDirectoryPath
 path += "/Sources/Workspace/Diamond_Machine_Parts/Blocks/"
-path += "1x1_end_beam.mmp"
+path += "1x2_beam.mmp"
 
 let start1 = Date()
 let fileData = FileManager.default.contents(atPath: path)
@@ -24,6 +24,10 @@ let start2 = Date()
 let mmp = MMP(string: fileString)
 let end2 = Date()
 
+let start3 = Date()
+mmp.validate()
+let end3 = Date()
+
 @MainActor
 func profile(start: Date, end: Date) {
   let timeInterval = end.timeIntervalSince(start)
@@ -31,17 +35,17 @@ func profile(start: Date, end: Date) {
   var microsecondsPerAtom = timeInterval / 1e-6
   microsecondsPerAtom /= Double(mmp.topology.atoms.count)
   
-  print("parsing latency:", Float(timeInterval / 1e-3), "ms")
+  print("profiling data")
+  print("- latency:", Float(timeInterval / 1e-3), "ms")
   print("- throughput:", Float(microsecondsPerAtom), "μs/atom")
 }
 
 print()
 print("byte count:", fileData.count / 1000, "KB")
-profile(start: start1, end: end1)
-profile(start: start2, end: end2)
-
-print()
 print("atom count:", mmp.topology.atoms.count)
 print("bond count:", mmp.topology.bonds.count)
 
-// TODO: Validate that the topology is correct.
+print()
+profile(start: start1, end: end1)
+profile(start: start2, end: end2)
+profile(start: start3, end: end3)

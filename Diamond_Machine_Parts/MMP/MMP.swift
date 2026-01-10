@@ -90,4 +90,31 @@ struct MMP {
       }
     }
   }
+  
+  // Validate that the topology is correct.
+  func validate() {
+    let atomsToBondsMap = topology.map(.atoms, to: .bonds)
+    for atomID in topology.atoms.indices {
+      let atom = topology.atoms[atomID]
+      let bondsMap = atomsToBondsMap[atomID]
+      
+      func expectedBondCount(atomicNumber: UInt8) -> ClosedRange<Int> {
+        if atomicNumber == 6 {
+          return 4...4
+        } else if atomicNumber == 1 {
+          return 1...1
+        } else {
+          fatalError("Unexpected atomic number: \(atomicNumber)")
+        }
+      }
+      let expected = expectedBondCount(atomicNumber: atom.atomicNumber)
+      let actual = bondsMap.count
+      guard expected.contains(actual) else {
+        // Instead of registering 3 bonds, it seems to not annotate conjugated
+        // sp2 structures at all.
+        print("WARNING: Invalid atom. ID \(atomID), expected \(expected), actual \(actual)")
+        continue
+      }
+    }
+  }
 }
