@@ -101,6 +101,18 @@ struct MMP {
 //    topology.remove(atoms: removedIDs)
   }
   
+  mutating func selectSubRange(_ atomIDs: [UInt32]) {
+    let setIncluded = Set(atomIDs)
+    
+    var removedIDs: [UInt32] = []
+    for atomID in topology.atoms.indices.map(UInt32.init) {
+      if !setIncluded.contains(atomID) {
+        removedIDs.append(atomID)
+      }
+    }
+    topology.remove(atoms: removedIDs)
+  }
+  
   // Validate that the topology is correct.
   func validate() {
     let atomsToBondsMap = topology.map(.atoms, to: .bonds)
