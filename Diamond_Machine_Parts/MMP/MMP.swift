@@ -11,14 +11,13 @@ struct MMP {
     let lines = string.split(separator: "\n")
     for var line in lines {
       var newWords: [String] = []
-      
       line.withUTF8 {
         var pendingWord: [UInt8] = []
         for character in $0 {
           if character == 0x20 {
             newWords.append(String(
               decoding: pendingWord, as: UTF8.self))
-            pendingWord = []
+            pendingWord.removeAll(keepingCapacity: true)
             continue
           }
           
@@ -38,52 +37,6 @@ struct MMP {
             decoding: pendingWord, as: UTF8.self))
         }
       }
-      
-//      for character in line.utf8 {
-//        if character == 0x20 {
-//          newWords.append(String(
-//            decoding: pendingWord, as: UTF8.self))
-//          pendingWord = []
-//          continue
-//        }
-//        
-//        if character == 0x28 {
-//          continue
-//        }
-//        if character == 0x29 {
-//          continue
-//        }
-//        if character == 0x2C {
-//          continue
-//        }
-//        pendingWord.append(character)
-//      }
-//      if pendingWord.count > 0 {
-//        newWords.append(String(
-//          decoding: pendingWord, as: UTF8.self))
-//      }
-      
-//      let rawWords = line.split(separator: " ").map(String.init)
-//      var newWords: [String] = []
-//
-//      for rawWord in rawWords {
-//        var newCharacters: [UInt8] = []
-//        for character in rawWord.utf8 {
-//          if character == 0x28 {
-//            continue
-//          }
-//          if character == 0x29 {
-//            continue
-//          }
-//          if character == 0x2C {
-//            continue
-//          }
-//          newCharacters.append(character)
-//        }
-//        
-//        let newWord = String(decoding: newCharacters, as: UTF8.self)
-//        newWords.append(newWord)
-//      }
       guard newWords.count > 0 else {
         continue
       }
