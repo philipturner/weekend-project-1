@@ -23,6 +23,9 @@ struct NamedView {
     // Unit conversions.
     scale /= 10
     pov /= 10
+    
+    // Fix source of rendering error.
+    quat = quat.normalized!
   }
 }
  
