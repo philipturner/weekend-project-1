@@ -23,7 +23,7 @@ var mmp = MMP(string: fileString)
 // Ring-shaped diamondoid
 //mmp.selectSubRange((UInt32(23436)...25955).map { $0 })
 //mmp.selectSubRange((UInt32(42439)...45336).map { $0 })
-//mmp.selectSubRange((UInt32(11757)...14276).map { $0 }) [displaced]
+//mmp.selectSubRange((UInt32(11757)...14276).map { $0 })
 
 // Carbon nanotube (various positions)
 //mmp.selectSubRange((UInt32(14277)...14780).map { $0 })
@@ -37,7 +37,7 @@ var mmp = MMP(string: fileString)
 //mmp.selectSubRange((UInt32(0)...3505).map { $0 })
 
 // Complex diamondoid
-//mmp.selectSubRange((UInt32(3606)...11756).map { $0 })
+mmp.selectSubRange((UInt32(3606)...11756).map { $0 })
 //mmp.selectSubRange((UInt32(34287)...42438).map { $0 })
 //mmp.selectSubRange((UInt32(27259)...34286).map { $0 }) [mutated]
 //mmp.selectSubRange((UInt32(15285)...23435).map { $0 }) [displaced]
@@ -106,15 +106,14 @@ for atomID in mmp.topology.atoms.indices {
 
 @MainActor
 func modifyCamera() {
-  let namedView = mmp.namedViews["LastView5"]
+  let namedView = mmp.namedViews["LastView"]
   guard let namedView else {
     fatalError("Could not retrieve named view.")
   }
   
-  let rotation = namedView.quat
-//  let rotation = Quaternion<Float>(
-//    angle: Float.pi / 180 * 0,
-//    axis: SIMD3(0, 1, 0))
+  let rotation = Quaternion<Float>(
+    angle: Float.pi / 180 * 45,
+    axis: SIMD3(0, 1, 0))
   
   func rotate(_ vector: SIMD3<Float>) -> SIMD3<Float> {
     var output = rotation.act(on: vector)
@@ -128,8 +127,7 @@ func modifyCamera() {
   application.camera.basis.0 = rotate(SIMD3(1, 0, 0))
   application.camera.basis.1 = rotate(SIMD3(0, 1, 0))
   application.camera.basis.2 = rotate(SIMD3(0, 0, 1))
-  //atom 26480 (0) (13229, 28319, 31878) def
-  //atom 26028 (6) (13179, 28376, 31140) def
+  
   // NanoEngineer might be entirely orthographic projection.
   //
   // points where this breaks down
@@ -144,10 +142,9 @@ func modifyCamera() {
 //  cameraDistance /= tan(fovAngleVertical / 2)
   
   let fovAngleVertical = Float.pi / 180 * 60
-  let cameraDistance = Float(40)
+  let cameraDistance = Float(20)
   
-  var position = namedView.pov
-//  var position = SIMD3<Float>(0, 0, 0)
+  var position = SIMD3<Float>(0, 0, 0)
   position += rotation.act(on: SIMD3(0, 0, cameraDistance))
   application.camera.position = position
   application.camera.fovAngleVertical = fovAngleVertical
