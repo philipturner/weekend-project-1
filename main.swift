@@ -72,6 +72,10 @@ func modifyCamera() {
   let rotation = namedView.quat
   func rotate(_ vector: SIMD3<Float>) -> SIMD3<Float> {
     var output = rotation.act(on: vector)
+    
+    // Fix source of rendering error. Now the limiting factor is probably
+    // internal to the renderer itself. Unsure exactly what's happening at
+    // large distances.
     output /= (output * output).sum().squareRoot()
     return output
   }
@@ -80,13 +84,12 @@ func modifyCamera() {
   application.camera.basis.2 = rotate(SIMD3(0, 0, 1))
   
   // NanoEngineer might be entirely orthographic projection.
-  let fovAngleVertical = Float.pi / 180 * 10
+  let fovAngleVertical = Float.pi / 180 * 20
   var cameraDistance = namedView.scale
   cameraDistance /= tan(fovAngleVertical / 2)
   
   var position = namedView.pov
   position += rotation.act(on: SIMD3(0, 0, cameraDistance))
-  print(position)
   application.camera.position = position
   application.camera.fovAngleVertical = fovAngleVertical
 }
