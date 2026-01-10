@@ -9,7 +9,7 @@ struct MMP {
     // - Each space separates a word
     // - Omit parentheses and commas
     let lines = string.split(separator: "\n").map(String.init)
-    for line in lines[0..<100] {
+    for line in lines {
       let rawWords = line.split(separator: " ").map(String.init)
       var newWords: [String] = []
       
@@ -59,7 +59,7 @@ struct MMP {
         let subsequence = Array(newWords[1...])
         for word in subsequence {
           // Using 1-index notation.
-          let atomID = topology.atoms.count
+          let atomID = UInt32(topology.atoms.count)
           guard let otherAtomID = UInt32(word) else {
             fatalError("Could not parse word.")
           }
@@ -67,7 +67,10 @@ struct MMP {
             fatalError("Invalid other atom ID.")
           }
           
-          print("hello world")
+          let bond = SIMD2(
+            atomID - 1,
+            otherAtomID - 1)
+          topology.bonds.append(bond)
         }
       }
     }
