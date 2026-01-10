@@ -18,9 +18,9 @@ guard let fileString else {
   fatalError("Could not create string.")
 }
 
-var mmp = MMP(string: fileString)
+let mmp = MMP(string: fileString)
 
-// Have I found a rule to reverse-engineer the image?
+// # Have I found a rule to reverse-engineer the image?
 //
 // Ring 6 tall
 // Stub 4-5 tall
@@ -33,26 +33,33 @@ var mmp = MMP(string: fileString)
 //
 // Test an MD simulation with the exact parts from the file, no extra
 // compilation needed. The bond topology is compatible with MM4.
-
-// Ring-shaped diamondoid
-//mmp.selectSubRange((UInt32(23436)...25955).map { $0 }) [thin]
+//
+// # Parsed the needed components from 8Tooth.mmp
+//
+// Ring, 6 atomic layers
+//mmp.selectSubRange((UInt32(23436)...25955).map { $0 })
+//
+// Ring, 7 atomic layers
 //mmp.selectSubRange((UInt32(42439)...45336).map { $0 }) [thick]
+//
+// Pin
+//mmp.selectSubRange((UInt32(3606)...11756).map { $0 })
 
-// Complex diamondoid
-//mmp.selectSubRange((UInt32(3606)...11756).map { $0 }) <-- select this
-//mmp.selectSubRange((UInt32(34287)...42438).map { $0 })
-//mmp.selectSubRange((UInt32(15285)...23435).map { $0 }) [displaced]
-
-print()
-print("byte count:", fileData.count / 1000, "KB")
-print("atom count:", mmp.topology.atoms.count)
-print("bond count:", mmp.topology.bonds.count)
-
-mmp.validate()
-var paramsDesc = MM4ParametersDescriptor()
-paramsDesc.atomicNumbers = mmp.topology.atoms.map(\.atomicNumber)
-paramsDesc.bonds = mmp.topology.bonds
-let parameters = try! MM4Parameters(descriptor: paramsDesc)
+@MainActor
+func createPart(range: ClosedRange<UInt32>) -> Topology {
+  var topology = mmp.topology
+  let setIncluded = Set(range)
+  
+  var removedIDs: [UInt32] = []
+  for atomID in topology.atoms.indices.map(UInt32.init) {
+    if !setIncluded.contains(atomID) {
+      removedIDs.append(atomID)
+    }
+  }
+  topology.remove(atoms: removedIDs)
+  
+  return topology
+}
 
 // MARK: - Launch Application
 
@@ -85,27 +92,6 @@ func createApplication() -> Application {
 }
 let application = createApplication()
 
-do {
-  let topology = mmp.topology
-  let matches = topology.match(
-    topology.atoms,
-    algorithm: .absoluteRadius(0.010),
-    maximumNeighborCount: 30)
-  
-  let atomsToBondsMap = topology.map(.atoms, to: .bonds)
-  
-  for atomID in topology.atoms.indices {
-    let atom = topology.atoms[atomID]
-    let bondsMap = atomsToBondsMap[atomID]
-    let bondCount = bondsMap.count
-    
-    let matchList = matches[atomID]
-    if matchList.count > 2 {
-      print(atomID, atom, bondCount, matchList)
-    }
-  }
-}
-
 for atomID in mmp.topology.atoms.indices {
   let atom = mmp.topology.atoms[atomID]
   application.atoms[atomID] = atom
@@ -113,11 +99,6 @@ for atomID in mmp.topology.atoms.indices {
 
 @MainActor
 func modifyCamera() {
-  let namedView = mmp.namedViews["LastView"]
-  guard let namedView else {
-    fatalError("Could not retrieve named view.")
-  }
-  
   let rotation = Quaternion<Float>(
     angle: Float.pi / 180 * 45,
     axis: SIMD3(0, 1, 0))
@@ -135,25 +116,15 @@ func modifyCamera() {
   application.camera.basis.1 = rotate(SIMD3(0, 1, 0))
   application.camera.basis.2 = rotate(SIMD3(0, 0, 1))
   
-  // NanoEngineer might be entirely orthographic projection.
-  //
-  // points where this breaks down
-  // 1x3_beam,     20°, (350 Å) 35 nm -> 198 nm
-  // 10nm_bar_pin, 10°, (140 Å) 14 nm -> 160 nm
-  //
-  // alternative limits to FOV
-  // 1x3_beam,     35°, (350 Å) 35 nm -> 111 nm
-  // 10nm_bar_pin, 20°, (140 Å) 14 nm -> 79 nm
-//  let fovAngleVertical = Float.pi / 180 * 30
-//  var cameraDistance = namedView.scale
-//  cameraDistance /= tan(fovAngleVertical / 2)
-  
   let fovAngleVertical = Float.pi / 180 * 60
   let cameraDistance = Float(20)
-  
-  var position = SIMD3<Float>(0, 0, 0)
-  position += rotation.act(on: SIMD3(0, 0, cameraDistance))
-  application.camera.position = position
+  let focalPoint = SIMD3<Float>(0, 0, 0)
+  func createPosition() -> SIMD3<Float> {
+    var output = focalPoint
+    output += rotation.act(on: SIMD3(0, 0, cameraDistance))
+    return output
+  }
+  application.camera.position = createPosition()
   application.camera.fovAngleVertical = fovAngleVertical
 }
 
