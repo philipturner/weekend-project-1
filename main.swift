@@ -7,7 +7,7 @@ import xTB
 
 var path = FileManager.default.currentDirectoryPath
 path += "/Sources/Workspace/Diamond_Machine_Parts/Blocks/"
-path += "1x3_beam.mmp"
+path += "90_2h_bracket.mmp"
 
 let fileData = FileManager.default.contents(atPath: path)
 guard let fileData else {
@@ -69,7 +69,11 @@ func modifyCamera() {
     fatalError("Could not retrieve named view.")
   }
   
-  let rotation = namedView.quat
+//  let rotation = namedView.quat
+  let rotation = Quaternion<Float>(
+    angle: Float.pi / 180 * 45,
+    axis: SIMD3(1, 0, 0))
+  
   func rotate(_ vector: SIMD3<Float>) -> SIMD3<Float> {
     var output = rotation.act(on: vector)
     
@@ -92,9 +96,9 @@ func modifyCamera() {
   // alternative limits to FOV
   // 1x3_beam,     35°, (350 Å) 35 nm -> 111 nm
   // 10nm_bar_pin, 20°, (140 Å) 14 nm -> 79 nm
-  let fovAngleVertical = Float.pi / 180 * 35
-  var cameraDistance = namedView.scale
-  cameraDistance /= tan(fovAngleVertical / 2)
+  let fovAngleVertical = Float.pi / 180 * 60
+  var cameraDistance = Float(20)
+//  cameraDistance /= tan(fovAngleVertical / 2)
   
   var position = namedView.pov
   position += rotation.act(on: SIMD3(0, 0, cameraDistance))
