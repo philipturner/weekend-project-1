@@ -31,7 +31,22 @@ print("line count:", lines.count)
 for line in lines[0..<100] {
   let rawWords = line.split(separator: " ").map(String.init)
   for rawWord in rawWords {
+    var newCharacters: [UInt8] = []
+    for character in rawWord.utf8 {
+      if character == 0x28 {
+        continue
+      }
+      if character == 0x29 {
+        continue
+      }
+      if character == 0x2C {
+        continue
+      }
+      newCharacters.append(character)
+    }
     
+    let newWord = String(decoding: newCharacters, as: UTF8.self)
+    print(newWord, terminator: " ")
   }
   print()
 }
