@@ -7,7 +7,7 @@ import xTB
 
 var path = FileManager.default.currentDirectoryPath
 path += "/Sources/Workspace/Diamond_Machine_Parts/Blocks/"
-path += "1x1_end_beam.mmp"
+path += "10nm_bar_pin.mmp"
 
 let fileData = FileManager.default.contents(atPath: path)
 guard let fileData else {
@@ -50,7 +50,7 @@ func createApplication() -> Application {
   
   applicationDesc.addressSpaceSize = 4_000_000
   applicationDesc.voxelAllocationSize = 500_000_000
-  applicationDesc.worldDimension = 64
+  applicationDesc.worldDimension = 384
   let application = Application(descriptor: applicationDesc)
   
   return application
@@ -75,14 +75,17 @@ func modifyCamera() {
   application.camera.basis.2 = rotation.act(on: SIMD3(0, 0, 1))
   
   // NanoEngineer might be entirely orthographic projection.
-  let fovAngleVertical = Float.pi / 180 * 30
+//  let fovAngleVertical = Float.pi / 180 * 20
   var cameraDistance = namedView.scale
-  cameraDistance /= tan(fovAngleVertical / 2)
+  cameraDistance = 80
+//  cameraDistance /= tan(fovAngleVertical / 2)
+//  print(cameraDistance)
   
   var position = namedView.pov
   position += rotation.act(on: SIMD3(0, 0, cameraDistance))
   application.camera.position = position
-  application.camera.fovAngleVertical = fovAngleVertical
+  application.camera.fovAngleVertical = Float.pi / 180 * 20
+  print(position)
 }
 
 application.run {
