@@ -7,7 +7,7 @@ import xTB
 
 var path = FileManager.default.currentDirectoryPath
 path += "/Sources/Workspace/Diamond_Machine_Parts/Blocks/"
-path += "10nm_bar_pin.mmp"
+path += "1x3_beam.mmp"
 
 let fileData = FileManager.default.contents(atPath: path)
 guard let fileData else {
@@ -84,7 +84,15 @@ func modifyCamera() {
   application.camera.basis.2 = rotate(SIMD3(0, 0, 1))
   
   // NanoEngineer might be entirely orthographic projection.
-  let fovAngleVertical = Float.pi / 180 * 20
+  //
+  // points where this breaks down
+  // 1x3_beam,     20°, (350 Å) 35 nm -> 198 nm
+  // 10nm_bar_pin, 10°, (140 Å) 14 nm -> 160 nm
+  //
+  // alternative limits to FOV
+  // 1x3_beam,     35°, (350 Å) 35 nm -> 111 nm
+  // 10nm_bar_pin, 20°, (140 Å) 14 nm -> 79 nm
+  let fovAngleVertical = Float.pi / 180 * 35
   var cameraDistance = namedView.scale
   cameraDistance /= tan(fovAngleVertical / 2)
   
