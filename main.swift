@@ -7,7 +7,7 @@ import xTB
 
 var path = FileManager.default.currentDirectoryPath
 path += "/Sources/Workspace/Diamond_Machine_Parts/Blocks/"
-path += "111_box_bracket_lid.mmp"
+path += "8_tooth_gear_clip_bushing.mmp"
 
 let fileData = FileManager.default.contents(atPath: path)
 guard let fileData else {
@@ -58,21 +58,22 @@ func createApplication() -> Application {
 let application = createApplication()
 
 for atomID in mmp.topology.atoms.indices {
-  let atom = mmp.topology.atoms[atomID]
+  var atom = mmp.topology.atoms[atomID]
+  atom.position *= 1.3
   application.atoms[atomID] = atom
 }
 
 @MainActor
 func modifyCamera() {
-  let namedView = mmp.namedViews["LastView"]
+  let namedView = mmp.namedViews["LastView5"]
   guard let namedView else {
     fatalError("Could not retrieve named view.")
   }
   
-//  let rotation = namedView.quat
-  let rotation = Quaternion<Float>(
-    angle: Float.pi / 180 * 120,
-    axis: SIMD3(0, 1, 0))
+  let rotation = namedView.quat
+//  let rotation = Quaternion<Float>(
+//    angle: Float.pi / 180 * 0,
+//    axis: SIMD3(0, 1, 0))
   
   func rotate(_ vector: SIMD3<Float>) -> SIMD3<Float> {
     var output = rotation.act(on: vector)
@@ -86,7 +87,8 @@ func modifyCamera() {
   application.camera.basis.0 = rotate(SIMD3(1, 0, 0))
   application.camera.basis.1 = rotate(SIMD3(0, 1, 0))
   application.camera.basis.2 = rotate(SIMD3(0, 0, 1))
-  
+  //atom 26480 (0) (13229, 28319, 31878) def
+  //atom 26028 (6) (13179, 28376, 31140) def
   // NanoEngineer might be entirely orthographic projection.
   //
   // points where this breaks down
@@ -96,15 +98,15 @@ func modifyCamera() {
   // alternative limits to FOV
   // 1x3_beam,     35°, (350 Å) 35 nm -> 111 nm
   // 10nm_bar_pin, 20°, (140 Å) 14 nm -> 79 nm
-//  let fovAngleVertical = Float.pi / 180 * 30
-//  var cameraDistance = namedView.scale
-//  cameraDistance /= tan(fovAngleVertical / 2)
+  let fovAngleVertical = Float.pi / 180 * 30
+  var cameraDistance = namedView.scale
+  cameraDistance /= tan(fovAngleVertical / 2)
   
-  let fovAngleVertical = Float.pi / 180 * 60
-  let cameraDistance = Float(20)
+//  let fovAngleVertical = Float.pi / 180 * 60
+//  let cameraDistance = Float(40)
   
-//  var position = namedView.pov
-  var position = SIMD3<Float>(1.8, 0.8, -3.2)
+  var position = namedView.pov
+//  var position = SIMD3<Float>(0, 0, 0)
   position += rotation.act(on: SIMD3(0, 0, cameraDistance))
   application.camera.position = position
   application.camera.fovAngleVertical = fovAngleVertical

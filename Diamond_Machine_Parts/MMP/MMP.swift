@@ -65,7 +65,7 @@ struct MMP {
         topology.atoms.append(atom)
       }
       
-      else if newWords[0] == "bond1" {
+      else if newWords[0] == "bond1" || newWords[0] == "bondg" {
         for word in newWords[1...] {
           // Using 1-indexed notation.
           let atomID = UInt32(topology.atoms.count)
@@ -89,6 +89,16 @@ struct MMP {
         namedViews[namedView.name] = namedView
       }
     }
+    
+    // Remove troublesome zero atoms from the graphene nanotube mesh.
+    var removedIDs: [UInt32] = []
+    for atomID in topology.atoms.indices {
+      let atom = topology.atoms[atomID]
+      if atom.atomicNumber == 0 {
+        removedIDs.append(UInt32(atomID))
+      }
+    }
+    topology.remove(atoms: removedIDs)
   }
   
   // Validate that the topology is correct.
@@ -100,7 +110,7 @@ struct MMP {
       
       func expectedBondCount(atomicNumber: UInt8) -> ClosedRange<Int> {
         if atomicNumber == 6 {
-          return 4...4
+          return 3...4
         } else if atomicNumber == 1 {
           return 1...1
         } else {
