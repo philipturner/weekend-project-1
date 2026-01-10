@@ -19,7 +19,7 @@ guard let fileString else {
 }
 
 let mmp = MMP(string: fileString)
-mmp.validate()
+//mmp.validate()
 
 print()
 print("byte count:", fileData.count / 1000, "KB")
@@ -57,6 +57,26 @@ func createApplication() -> Application {
 }
 let application = createApplication()
 
+do {
+  let topology = mmp.topology
+  let matches = topology.match(
+    topology.atoms,
+    algorithm: .absoluteRadius(0.010),
+    maximumNeighborCount: 30)
+  
+  let atomsToBondsMap = topology.map(.atoms, to: .bonds)
+  
+  for atomID in topology.atoms.indices {
+    let atom = topology.atoms[atomID]
+    let bondsMap = atomsToBondsMap[atomID]
+    let bondCount = bondsMap.count
+    
+    let matchList = matches[atomID]
+    if matchList.count > 2 {
+      print(atomID, atom, bondCount, matchList)
+    }
+  }
+}
 
 for atomID in mmp.topology.atoms.indices {
   let atom = mmp.topology.atoms[atomID]
