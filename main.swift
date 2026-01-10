@@ -69,17 +69,23 @@ func modifyCamera() {
     fatalError("Could not retrieve named view.")
   }
   
-  let rotation = Quaternion<Float>(
-    angle: Float.pi / 180 * -90,
-    axis: SIMD3(1, 0, 0)
-  )
+//  let rotation = Quaternion<Float>(
+//    angle: Float.pi / 180 * 90,
+//    axis: SIMD3(1, 0, 0)
+//  )
+  let rotation = namedView.quat
   
   application.camera.basis.0 = rotation.act(on: SIMD3(1, 0, 0))
   application.camera.basis.1 = rotation.act(on: SIMD3(0, 1, 0))
   application.camera.basis.2 = rotation.act(on: SIMD3(0, 0, 1))
-  application.camera.fovAngleVertical = Float.pi / 180 * 60
   
-  application.camera.position = SIMD3(-2, 10, 0)
+  // NanoEngineer might be entirely orthographic projection.
+  application.camera.fovAngleVertical = Float.pi / 180 * 70
+  
+  var position = namedView.pov
+  position += rotation.act(on: SIMD3(0, 0, namedView.scale))
+  application.camera.position = position
+//  application.camera.position = SIMD3(-2, -10, 0)
 }
 
 application.run {
