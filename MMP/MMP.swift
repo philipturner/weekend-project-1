@@ -89,16 +89,6 @@ struct MMP {
         namedViews[namedView.name] = namedView
       }
     }
-    
-    // Remove troublesome zero atoms from the graphene nanotube mesh.
-//    var removedIDs: [UInt32] = []
-//    for atomID in topology.atoms.indices {
-//      let atom = topology.atoms[atomID]
-//      if atom.atomicNumber == 0 {
-//        removedIDs.append(UInt32(atomID))
-//      }
-//    }
-//    topology.remove(atoms: removedIDs)
   }
   
   mutating func selectSubRange(_ atomIDs: [UInt32]) {

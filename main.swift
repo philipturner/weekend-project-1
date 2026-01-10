@@ -20,32 +20,39 @@ guard let fileString else {
 
 var mmp = MMP(string: fileString)
 
+// Have I found a rule to reverse-engineer the image?
+//
+// Ring 6 tall
+// Stub 4-5 tall
+//
+// Ring 4 tall
+// Stub 2-3 tall
+//
+// Now that I look, since it's very hard to make out the layer count,
+// there's a very good chance the images are 6 layers thick.
+//
+// Test an MD simulation with the exact parts from the file, no extra
+// compilation needed. The bond topology is compatible with MM4.
+
 // Ring-shaped diamondoid
-//mmp.selectSubRange((UInt32(23436)...25955).map { $0 })
-//mmp.selectSubRange((UInt32(42439)...45336).map { $0 })
-//mmp.selectSubRange((UInt32(11757)...14276).map { $0 })
-
-// Carbon nanotube (various positions)
-//mmp.selectSubRange((UInt32(14277)...14780).map { $0 })
-//mmp.selectSubRange((UInt32(14781)...15284).map { $0 })
-//mmp.selectSubRange((UInt32(25956)...26483).map { $0 })
-
-// Weird tiny piece: hole that fills mutated complex diamondoid
-//mmp.selectSubRange((UInt32(26484)...27258).map { $0 })
-
-// Unique gear
-//mmp.selectSubRange((UInt32(0)...3505).map { $0 })
+//mmp.selectSubRange((UInt32(23436)...25955).map { $0 }) [thin]
+//mmp.selectSubRange((UInt32(42439)...45336).map { $0 }) [thick]
 
 // Complex diamondoid
-mmp.selectSubRange((UInt32(3606)...11756).map { $0 })
+//mmp.selectSubRange((UInt32(3606)...11756).map { $0 }) <-- select this
 //mmp.selectSubRange((UInt32(34287)...42438).map { $0 })
-//mmp.selectSubRange((UInt32(27259)...34286).map { $0 }) [mutated]
 //mmp.selectSubRange((UInt32(15285)...23435).map { $0 }) [displaced]
 
 print()
 print("byte count:", fileData.count / 1000, "KB")
 print("atom count:", mmp.topology.atoms.count)
 print("bond count:", mmp.topology.bonds.count)
+
+mmp.validate()
+var paramsDesc = MM4ParametersDescriptor()
+paramsDesc.atomicNumbers = mmp.topology.atoms.map(\.atomicNumber)
+paramsDesc.bonds = mmp.topology.bonds
+let parameters = try! MM4Parameters(descriptor: paramsDesc)
 
 // MARK: - Launch Application
 
