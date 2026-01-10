@@ -44,7 +44,29 @@ struct MMP {
       if newWords[0] == "atom" {
         let subsequence = Array(newWords[2...])
         let atom = Self.createAtom(words: subsequence)
-        print(atom)
+        
+        // WARNING: Serialized MMP files are 1-indexed.
+        guard let atomID = UInt32(newWords[1]) else {
+          fatalError("Could not parse word.")
+        }
+        guard topology.atoms.count == atomID - 1 else {
+          fatalError("Unexpected topology atom count.")
+        }
+        topology.atoms.append(atom)
+      }
+      
+      if newWords[0] == "bond" {
+        let subsequence = Array(newWords[1...])
+        for word in subsequence {
+          // Using 1-index notation.
+          let atomID = topology.atoms.count
+          guard let otherAtomID = UInt32(word) else {
+            fatalError("Could not parse word.")
+          }
+          guard otherAtomID < atomID else {
+            fatalError("Invalid other atom ID.")
+          }
+        }
       }
     }
   }
