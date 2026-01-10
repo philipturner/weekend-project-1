@@ -21,6 +21,7 @@ struct NamedView {
     self.zoomFactor = Float(words[9])!
     
     // Unit conversions.
+    scale /= 10
     pov /= 10
   }
 }

@@ -40,7 +40,33 @@ struct MMP {
         let namedView = NamedView(words: subsequence)
         namedViews[namedView.name] = namedView
       }
+      
+      if newWords[0] == "atom" {
+        let subsequence = Array(newWords[2...])
+        let atom = Self.createAtom(words: subsequence)
+        print(atom)
+      }
     }
+  }
+}
 
+extension MMP {
+  private static func createAtom(
+    words: [String]
+  ) -> Atom {
+    guard let element = Float(words[0]),
+          let x = Float(words[1]),
+          let y = Float(words[2]),
+          let z = Float(words[3]) else {
+      fatalError("Could not parse words.")
+    }
+    
+    // Unit conversions.
+    var position = SIMD3(x, y, z)
+    position /= 10_000
+    
+    return Atom(
+      position: position,
+      atomicNumber: UInt8(element))
   }
 }
