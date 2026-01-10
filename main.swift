@@ -7,7 +7,7 @@ import xTB
 
 var path = FileManager.default.currentDirectoryPath
 path += "/Sources/Workspace/Diamond_Machine_Parts/Blocks/"
-path += "8_tooth_gear_clip_bushing.mmp"
+path += "1x1_end_beam.mmp"
 
 let start1 = Date()
 let fileData = FileManager.default.contents(atPath: path)

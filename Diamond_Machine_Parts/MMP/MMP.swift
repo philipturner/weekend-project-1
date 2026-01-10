@@ -5,18 +5,18 @@ struct MMP {
   var topology = Topology()
   
   init(string: String) {
+    let lines = string.split(separator: "\n")
+    
     // Parsing the string:
     // - Each space separates a word
     // - Omit parentheses and commas
-    
-    let lines = string.split(separator: "\n")
-    
+    var newWords: [String] = []
     var pendingWord: [UInt8] = []
     for var line in lines {
-      var newWords: [String] = []
+      newWords.removeAll(keepingCapacity: true)
       
-      line.withUTF8 {
-        for character in $0 {
+      line.withUTF8 { utf8 in
+        for character in utf8 {
           if character == 0x20 {
             newWords.append(String(
               decoding: pendingWord, as: UTF8.self))
@@ -45,12 +45,6 @@ struct MMP {
         continue
       }
       
-      if newWords[0] == "csys" {
-        let subsequence = Array(newWords[1...])
-        let namedView = NamedView(words: subsequence)
-        namedViews[namedView.name] = namedView
-      }
-      
       if newWords[0] == "atom" {
         var position = SIMD3(
           Float(newWords[3])!,
@@ -71,9 +65,8 @@ struct MMP {
         topology.atoms.append(atom)
       }
       
-      if newWords[0] == "bond1" {
-        let subsequence = Array(newWords[1...])
-        for word in subsequence {
+      else if newWords[0] == "bond1" {
+        for word in newWords[1...] {
           // Using 1-indexed notation.
           let atomID = UInt32(topology.atoms.count)
           guard let otherAtomID = UInt32(word) else {
@@ -88,6 +81,12 @@ struct MMP {
             otherAtomID - 1)
           topology.bonds.append(bond)
         }
+      }
+      
+      else if newWords[0] == "csys" {
+        let subsequence = Array(newWords[1...])
+        let namedView = NamedView(words: subsequence)
+        namedViews[namedView.name] = namedView
       }
     }
   }
