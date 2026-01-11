@@ -120,18 +120,6 @@ func anchorIDs(socketTopology: Topology) -> Set<UInt32> {
   return output
 }
 
-var socketTopology = socket7Topology
-do {
-  let socketAnchorIDs = anchorIDs(socketTopology: socketTopology)
-  for atomID in socketAnchorIDs {
-    var atom = socketTopology.atoms[Int(atomID)]
-    if atom.atomicNumber == 1 {
-      atom.atomicNumber = 9
-    }
-    socketTopology.atoms[Int(atomID)] = atom
-  }
-}
-
 // MARK: - Launch Application
 
 @MainActor
@@ -165,17 +153,17 @@ let application = createApplication()
 
 @MainActor
 func modifyAtoms() {
-  for atomID in pinTopology.atoms.indices {
-    let atom = pinTopology.atoms[atomID]
-    application.atoms[atomID] = atom
-  }
-  
-  for atomID in socketTopology.atoms.indices {
-    let atom = socketTopology.atoms[atomID]
-    
-    let offset = pinTopology.atoms.count
-    application.atoms[offset + atomID] = atom
-  }
+//  for atomID in pinTopology.atoms.indices {
+//    let atom = pinTopology.atoms[atomID]
+//    application.atoms[atomID] = atom
+//  }
+//  
+//  for atomID in socketTopology.atoms.indices {
+//    let atom = socketTopology.atoms[atomID]
+//    
+//    let offset = pinTopology.atoms.count
+//    application.atoms[offset + atomID] = atom
+//  }
 }
 
 @MainActor
