@@ -73,9 +73,30 @@ func createPart(range: ClosedRange<UInt32>) -> Topology {
   
   return topology
 }
-let pinTopology = createPart(range: 3606...11756)
+var pinTopology = createPart(range: 3606...11756)
 let socket6Topology = createPart(range: 23436...25955)
 let socket7Topology = createPart(range: 42439...45336)
+
+// TODO: Abstract this away into separate files, "Pin.swift" and
+// "Socket.swift". Each accepts the raw topology and encapsulates the
+// atom selection.
+
+func handleIDs(pinTopology: Topology) -> Set<UInt32> {
+  var output: Set<UInt32> = []
+  for atomID in pinTopology.atoms.indices {
+    let atom = pinTopology.atoms[atomID]
+    if atom.position.z < 7 {
+      output.insert(UInt32(atomID))
+    }
+  }
+  return output
+}
+let pinHandleIDs = handleIDs(pinTopology: pinTopology)
+for handleID in pinHandleIDs {
+  var atom = pinTopology.atoms[Int(handleID)]
+  atom.atomicNumber = 8
+  pinTopology.atoms[Int(handleID)] = atom
+}
 
 func anchorIDs(socketTopology: Topology) -> Set<UInt32> {
   var centerOfMass: SIMD3<Float> = .zero
@@ -119,6 +140,27 @@ func anchorIDs(socketTopology: Topology) -> Set<UInt32> {
   }
   return output
 }
+let socketTopology = socket7Topology
+let socketAnchorIDs = anchorIDs(socketTopology: socketTopology)
+
+// MARK: - Run Simulation
+
+// Create a rigid body to assist in simulation setup.
+func createRigidBody(
+  topology: Topology
+) -> (MM4Parameters, MM4RigidBody) {
+  var paramsDesc = MM4ParametersDescriptor()
+  paramsDesc.atomicNumbers = topology.atoms.map(\.atomicNumber)
+  paramsDesc.bonds = topology.bonds
+  let parameters = try! MM4Parameters(descriptor: paramsDesc)
+  
+  var rigidBodyDesc = MM4RigidBodyDescriptor()
+  rigidBodyDesc.masses = parameters.atoms.masses
+  rigidBodyDesc.positions = topology.atoms.map(\.position)
+  let rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
+  
+  return (parameters, rigidBody)
+}
 
 // MARK: - Launch Application
 
@@ -153,17 +195,17 @@ let application = createApplication()
 
 @MainActor
 func modifyAtoms() {
-//  for atomID in pinTopology.atoms.indices {
-//    let atom = pinTopology.atoms[atomID]
-//    application.atoms[atomID] = atom
-//  }
-//  
-//  for atomID in socketTopology.atoms.indices {
-//    let atom = socketTopology.atoms[atomID]
-//    
-//    let offset = pinTopology.atoms.count
-//    application.atoms[offset + atomID] = atom
-//  }
+  for atomID in pinTopology.atoms.indices {
+    let atom = pinTopology.atoms[atomID]
+    application.atoms[atomID] = atom
+  }
+  
+  for atomID in socketTopology.atoms.indices {
+    let atom = socketTopology.atoms[atomID]
+    
+    let offset = pinTopology.atoms.count
+    application.atoms[offset + atomID] = atom
+  }
 }
 
 @MainActor
