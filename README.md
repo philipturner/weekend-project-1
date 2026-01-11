@@ -24,3 +24,9 @@ The initial strain energy is enough to raise the temperature to the following am
 | socket | 40.13       | 6001.8      | 2898       | 53.6            |
 
 Part of the problem, is that the pin's strain energy can only be released, if you let the handle atoms relax during the minimization. I was making the mistake of freezing them. For context, handle atoms aren't frozen during dynamics; they're just a special category distinct from anchors. Handles are the atoms on which the force is applied (net force is distributed across them).
+
+---
+
+No matter what I try, it just won't go in! The parts aren't made for each other! I tried messing with every variable possible, and minimizing the wobble from the constant force going off-axis.
+
+If this specific design does work, its operation is fragile. Perhaps the act of going in the hole is just a rare thermal vibration where the prongs simultaneously move inward to avoid hitting the ring.
