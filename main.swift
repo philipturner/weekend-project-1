@@ -77,6 +77,45 @@ let pinTopology = createPart(range: 3606...11756)
 let socket6Topology = createPart(range: 23436...25955)
 let socket7Topology = createPart(range: 42439...45336)
 
+func anchorIDs(socketTopology: Topology) -> Set<UInt32> {
+  var centerOfMass: SIMD3<Float> = .zero
+  for atom in socketTopology.atoms {
+    centerOfMass += atom.position
+  }
+  centerOfMass /= Float(socketTopology.atoms.count)
+  
+  var output: Set<UInt32> = []
+  for atomID in socketTopology.atoms.indices {
+    let atom = socketTopology.atoms[atomID]
+    var delta = atom.position - centerOfMass
+    delta.z = 0
+    
+    let deltaLength = (delta * delta).sum().squareRoot()
+    if deltaLength > 2.5 {
+      if atom.atomicNumber == 1 {
+        output.insert(UInt32(atomID))
+      }
+    }
+  }
+  return output
+}
+
+var socketTopology = socket7Topology
+do {
+  let socketAnchorIDs = anchorIDs(socketTopology: socketTopology)
+  for atomID in socketAnchorIDs {
+    var atom = socketTopology.atoms[Int(atomID)]
+    if atom.atomicNumber == 6 {
+      fatalError("uh oh")
+      atom.atomicNumber = 14
+    }
+    if atom.atomicNumber == 1 {
+      atom.atomicNumber = 9
+    }
+    socketTopology.atoms[Int(atomID)] = atom
+  }
+}
+
 // MARK: - Launch Application
 
 @MainActor
@@ -111,16 +150,10 @@ let application = createApplication()
 @MainActor
 func modifyAtoms() {
   for atomID in pinTopology.atoms.indices {
-    var atom = pinTopology.atoms[atomID]
-    if atom.position.z < 6.2 {
-      if atom.atomicNumber == 6 {
-        // set atom to anchor
-      }
-    }
+    let atom = pinTopology.atoms[atomID]
     application.atoms[atomID] = atom
   }
   
-  let socketTopology = socket6Topology
   for atomID in socketTopology.atoms.indices {
     let atom = socketTopology.atoms[atomID]
     
