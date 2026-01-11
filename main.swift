@@ -8,7 +8,7 @@ import xTB
 
 // MARK: - User-Facing Options
 
-let renderingOffline: Bool = true
+let renderingOffline: Bool = false
 
 // The net force, in piconewtons.
 let netForce1 = SIMD3<Float>(0, 0, 10_000)
@@ -22,7 +22,7 @@ let frameCount2: Int = 60 * 0
 let gifFrameSkipRate: Int = 1
 
 let frameCount = 60 + 60 + frameCount1 + 60
-let cameraAngleDegrees: Float = 0
+let cameraAngleDegrees: Float = 110
 
 // MARK: - Compile Atoms
 
