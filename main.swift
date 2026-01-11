@@ -94,15 +94,15 @@ func createPin() -> Pin {
   let pinTopology = createPart(range: 3606...11756)
   var pin = Pin(topology: pinTopology)
   
-  let newPositions = minimize(
-    parameters: pin.parameters,
-    positions: pin.rigidBody.positions,
-    anchors: pin.handleIDs)
-  
-  var rigidBodyDesc = MM4RigidBodyDescriptor()
-  rigidBodyDesc.masses = pin.parameters.atoms.masses
-  rigidBodyDesc.positions = newPositions
-  pin.rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
+//  let newPositions = minimize(
+//    parameters: pin.parameters,
+//    positions: pin.rigidBody.positions,
+//    anchors: pin.handleIDs)
+//  
+//  var rigidBodyDesc = MM4RigidBodyDescriptor()
+//  rigidBodyDesc.masses = pin.parameters.atoms.masses
+//  rigidBodyDesc.positions = newPositions
+//  pin.rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
   
   return pin
 }
@@ -169,6 +169,7 @@ apply(
   masses: parameters.atoms.masses,
   handleIDs: pin.handleIDs)
 
+/*
 var frames: [[Atom]] = []
 @MainActor
 func createFrame() -> [Atom] {
@@ -190,6 +191,12 @@ for frameID in 1...frameCount {
   print("t = \(String(format: "%.3f", time)) ps")
   frames.append(createFrame())
 }
+ */
+
+let frames = minimize(
+  parameters: pin.parameters,
+  positions: pin.rigidBody.positions,
+  anchors: pin.handleIDs)
 
 // MARK: - Launch Application
 
@@ -298,21 +305,28 @@ func createTime() -> Float {
 func modifyAtoms() {
   let time = createTime()
   
-//  if time < 1 {
+  if time < 1 {
     let atomsToRender = frames[0]
     for atomID in atomsToRender.indices {
       let atom = atomsToRender[atomID]
       application.atoms[atomID] = atom
     }
-//  } else {
-//    let atoms = interpolate(
-//      frames: frames,
-//      time: time - 1)
-//    for atomID in atoms.indices {
-//      let atom = atoms[atomID]
-//      application.atoms[atomID] = atom
-//    }
-//  }
+  } else {
+    var atoms = interpolate(
+      frames: frames,
+      time: time - 1)
+    for atomID in pin.handleIDs {
+      atoms[Int(atomID)].atomicNumber = 8
+    }
+    for atomID in atoms.indices {
+      let atom = atoms[atomID]
+      if atom.atomicNumber == 8 {
+        application.atoms[atomID] = atom
+      } else {
+        application.atoms[atomID] = nil
+      }
+    }
+  }
 }
 
 @MainActor
