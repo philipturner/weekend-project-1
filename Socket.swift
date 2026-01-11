@@ -55,7 +55,7 @@ struct Socket {
       delta.z = 0
       
       let deltaLength = (delta * delta).sum().squareRoot()
-      guard deltaLength > 2.5 else {
+      guard deltaLength > 2.8 else {
         continue
       }
       guard atom.atomicNumber == 1 else {

@@ -10,12 +10,14 @@ import xTB
 let renderingOffline: Bool = false
 
 // The net force, in piconewtons.
-let netForce = SIMD3<Float>(0, 0, 15_000)
+let netForce1 = SIMD3<Float>(0, 0, 1_000)
+let netForce2 = SIMD3<Float>(0, 0, 2_000)
 
 // The simulation time per frame, in picoseconds. Frames are recorded and
 // nominally played back at 60 FPS.
 let frameSimulationTime: Double = 10.0 / 60
-let frameCount: Int = 60 * 3
+let frameCount1: Int = 60 * 1
+let frameCount2: Int = 60 * 2
 let gifFrameSkipRate: Int = 1
 
 // MARK: - Compile Atoms
@@ -151,11 +153,7 @@ func apply(
   }
   forceField.externalForces = externalForces
 }
-apply(
-  netForce: netForce,
-  forceField: forceField,
-  masses: parameters.atoms.masses,
-  handleIDs: pin.handleIDs)
+
 
 var frames: [[Atom]] = []
 @MainActor
@@ -171,7 +169,13 @@ func createFrame() -> [Atom] {
 }
 frames.append(createFrame())
 
-for frameID in 1...frameCount {
+#if false
+apply(
+  netForce: netForce1,
+  forceField: forceField,
+  masses: parameters.atoms.masses,
+  handleIDs: pin.handleIDs)
+for frameID in 1...frameCount1 {
   forceField.simulate(time: frameSimulationTime)
   frames.append(createFrame())
   
@@ -197,6 +201,41 @@ for frameID in 1...frameCount {
   print("max force: \(Format.force(maximumForce))", terminator: " | ")
   print()
 }
+forceField.velocities = [SIMD3<Float>](
+  repeating: .zero, count: parameters.atoms.count)
+
+apply(
+  netForce: netForce2,
+  forceField: forceField,
+  masses: parameters.atoms.masses,
+  handleIDs: pin.handleIDs)
+for frameID in 1...frameCount2 {
+  forceField.simulate(time: frameSimulationTime)
+  frames.append(createFrame())
+  
+  let time = Double(frameID) * frameSimulationTime
+  let energy = forceField.energy.potential
+  
+  let forces = forceField.forces
+  let positions = forceField.positions
+  var maximumForce: Float = .zero
+  for atomID in positions.indices {
+    let mass = parameters.atoms.masses[atomID]
+    if mass == 0 {
+      continue
+    }
+    
+    let force = forces[atomID]
+    let forceMagnitude = (force * force).sum().squareRoot()
+    maximumForce = max(maximumForce, forceMagnitude)
+  }
+  
+  print("time: \(Format.timePs(time))", terminator: " | ")
+  print("energy: \(Format.energy(energy))", terminator: " | ")
+  print("max force: \(Format.force(maximumForce))", terminator: " | ")
+  print()
+}
+#endif
 
 // MARK: - Launch Application
 
@@ -296,6 +335,7 @@ func createTime() -> Float {
   }
 }
 
+#if false
 // Extra animation frames bring the pin into position, from farther away.
 // Start at -5 nm, and at -3 nm.
 // Then replay the MD simulation.
@@ -342,6 +382,22 @@ func modifyAtoms() {
     }
   }
 }
+#else
+
+@MainActor
+func modifyAtoms() {
+  var atoms = pin.atoms
+  let anchorIDs = pin.handleIDs
+  for atomID in anchorIDs {
+    atoms[Int(atomID)].atomicNumber = 8
+  }
+  
+  for atomID in atoms.indices {
+    let atom = atoms[atomID]
+    application.atoms[atomID] = atom
+  }
+}
+#endif
 
 @MainActor
 func modifyCamera() {
