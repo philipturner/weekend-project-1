@@ -101,7 +101,12 @@ let application = createApplication()
 @MainActor
 func modifyAtoms() {
   for atomID in pinTopology.atoms.indices {
-    let atom = pinTopology.atoms[atomID]
+    var atom = pinTopology.atoms[atomID]
+    if atom.position.z < 6.2 {
+      if atom.atomicNumber == 6 {
+        // set atom to anchor
+      }
+    }
     application.atoms[atomID] = atom
   }
   
@@ -116,9 +121,9 @@ func modifyAtoms() {
 
 @MainActor
 func modifyCamera() {
-  let focalPoint = SIMD3<Float>(0, 2, 6)
+  let focalPoint = SIMD3<Float>(2, 2.5, 7)
   let rotation = Quaternion<Float>(
-    angle: Float.pi / 180 * 90,
+    angle: Float.pi / 180 * 0,
     axis: SIMD3(0, 1, 0))
   let cameraDistance: Float = 20
   
