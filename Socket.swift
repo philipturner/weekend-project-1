@@ -12,9 +12,9 @@ struct Socket {
     
     _minimize()
     
-//    for atomID in anchorIDs {
-//      parameters.atoms.masses[Int(atomID)] = 0
-//    }
+    for atomID in anchorIDs {
+      parameters.atoms.masses[Int(atomID)] = 0
+    }
   }
   
   var atoms: [Atom] {

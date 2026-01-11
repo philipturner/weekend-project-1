@@ -10,12 +10,12 @@ import xTB
 let renderingOffline: Bool = false
 
 // The net force, in piconewtons.
-let netForce = SIMD3<Float>(0, 0, 1)
+let netForce = SIMD3<Float>(0, 0, 1000)
 
 // The simulation time per frame, in picoseconds. Frames are recorded and
 // nominally played back at 60 FPS.
 let frameSimulationTime: Double = 10.0 / 60
-let frameCount: Int = 60 * 2
+let frameCount: Int = 60 * 1
 let gifFrameSkipRate: Int = 1
 
 // MARK: - Compile Atoms
@@ -151,11 +151,11 @@ func apply(
   }
   forceField.externalForces = externalForces
 }
-//apply(
-//  netForce: netForce,
-//  forceField: forceField,
-//  masses: parameters.atoms.masses,
-//  handleIDs: pin.handleIDs)
+apply(
+  netForce: netForce,
+  forceField: forceField,
+  masses: parameters.atoms.masses,
+  handleIDs: pin.handleIDs)
 
 var frames: [[Atom]] = []
 @MainActor
@@ -182,12 +182,17 @@ for frameID in 1...frameCount {
   let positions = forceField.positions
   var maximumForce: Float = .zero
   for atomID in positions.indices {
+    let mass = parameters.atoms.masses[atomID]
+    if mass == 0 {
+      continue
+    }
+    
     let force = forces[atomID]
     let forceMagnitude = (force * force).sum().squareRoot()
     maximumForce = max(maximumForce, forceMagnitude)
   }
   
-  print("time: \(Format.time(time))", terminator: " | ")
+  print("time: \(Format.timePs(time))", terminator: " | ")
   print("energy: \(Format.energy(energy))", terminator: " | ")
   print("max force: \(Format.force(maximumForce))", terminator: " | ")
   print()
