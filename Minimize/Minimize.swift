@@ -20,14 +20,16 @@ func minimize(
   minimizationDesc.positions = positions
   var minimization = FIREMinimization(descriptor: minimizationDesc)
   
-  let maxIterationCount: Int = 500
+  let maxIterationCount: Int = 2000
   for trialID in 0..<maxIterationCount {
     forceField.positions = minimization.positions
-    print(forceField.positions[100])
     
     let forces = forceField.forces
     var maximumForce: Float = .zero
     for atomID in positions.indices {
+      if anchors.contains(UInt32(atomID)) {
+        continue
+      }
       let force = forces[atomID]
       let forceMagnitude = (force * force).sum().squareRoot()
       maximumForce = max(maximumForce, forceMagnitude)

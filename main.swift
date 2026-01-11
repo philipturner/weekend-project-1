@@ -94,8 +94,6 @@ func createPin() -> Pin {
   let pinTopology = createPart(range: 3606...11756)
   var pin = Pin(topology: pinTopology)
   
-  print(pin.handleIDs.count)
-  print(pin.rigidBody.positions.count)
   let newPositions = minimize(
     parameters: pin.parameters,
     positions: pin.rigidBody.positions,
@@ -300,28 +298,28 @@ func createTime() -> Float {
 func modifyAtoms() {
   let time = createTime()
   
-  if time < 1 {
+//  if time < 1 {
     let atomsToRender = frames[0]
     for atomID in atomsToRender.indices {
       let atom = atomsToRender[atomID]
       application.atoms[atomID] = atom
     }
-  } else {
-    let atoms = interpolate(
-      frames: frames,
-      time: time - 1)
-    for atomID in atoms.indices {
-      let atom = atoms[atomID]
-      application.atoms[atomID] = atom
-    }
-  }
+//  } else {
+//    let atoms = interpolate(
+//      frames: frames,
+//      time: time - 1)
+//    for atomID in atoms.indices {
+//      let atom = atoms[atomID]
+//      application.atoms[atomID] = atom
+//    }
+//  }
 }
 
 @MainActor
 func modifyCamera() {
   let focalPoint = SIMD3<Float>(2, 2.8, 7)
   let rotation = Quaternion<Float>(
-    angle: Float.pi / 180 * 110,
+    angle: Float.pi / 180 * 90,
     axis: SIMD3(0, 1, 0))
   let cameraDistance: Float = 15
   
