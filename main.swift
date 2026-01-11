@@ -196,6 +196,11 @@ let application = createApplication()
 
 @MainActor
 func modifyAtoms() {
+  // Extra animation frames bring the pin into position, from farther away.
+  // Start at -5 nm, and at -3 nm.
+  // Then replay the MD simulation.
+  //
+  // Repeat the above twice: from 110°, then 0°.
   let atomsToRender = frames[0]
   for atomID in atomsToRender.indices {
     let atom = atomsToRender[atomID]
@@ -205,11 +210,11 @@ func modifyAtoms() {
 
 @MainActor
 func modifyCamera() {
-  let focalPoint = SIMD3<Float>(2, 2.5, 7)
+  let focalPoint = SIMD3<Float>(2, 2.8, 7)
   let rotation = Quaternion<Float>(
-    angle: Float.pi / 180 * 105,
+    angle: Float.pi / 180 * 110,
     axis: SIMD3(0, 1, 0))
-  let cameraDistance: Float = 10
+  let cameraDistance: Float = 15
   
   func rotate(_ vector: SIMD3<Float>) -> SIMD3<Float> {
     var output = rotation.act(on: vector)
@@ -223,7 +228,7 @@ func modifyCamera() {
   application.camera.basis.0 = rotate(SIMD3(1, 0, 0))
   application.camera.basis.1 = rotate(SIMD3(0, 1, 0))
   application.camera.basis.2 = rotate(SIMD3(0, 0, 1))
-  application.camera.fovAngleVertical = Float.pi / 180 * 60
+  application.camera.fovAngleVertical = Float.pi / 180 * 30
   
   var position = focalPoint
   position += rotation.act(on: SIMD3(0, 0, cameraDistance))
