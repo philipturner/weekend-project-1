@@ -92,7 +92,7 @@ let socket = createSocket()
 // MARK: - Run Simulation
 
 // The net force, in piconewtons.
-let netForce: Float = 1000
+let netForce = SIMD3<Float>(0, 0, 1000)
 
 @MainActor
 func createForceField() -> (MM4Parameters, MM4ForceField) {
@@ -110,24 +110,42 @@ func createForceField() -> (MM4Parameters, MM4ForceField) {
   positions += socket.rigidBody.positions
   forceField.positions = positions
   
-  
   return (parameters, forceField)
 }
 let (parameters, forceField) = createForceField()
 
 func apply(
-  netForce: Float,
+  netForce: SIMD3<Float>,
   forceField: MM4ForceField,
   masses: [Float],
   handleIDs: Set<UInt32>
 ) {
+  var totalMass: Float = 0
+  for atomID in handleIDs {
+    let mass = masses[Int(atomID)]
+    totalMass += mass
+  }
   
+  // F = m * a
+  // a = F / m
+  let acceleration: SIMD3<Float> = netForce / totalMass
+  
+  var externalForces = [SIMD3<Float>](
+    repeating: .zero, count: masses.count)
+  for atomID in handleIDs {
+    let mass = masses[Int(atomID)]
+    let force: SIMD3<Float> = mass * acceleration
+    externalForces[Int(atomID)] = force
+  }
+  forceField.externalForces = externalForces
 }
 apply(
   netForce: netForce,
   forceField: forceField,
   masses: parameters.atoms.masses,
   handleIDs: pin.handleIDs)
+
+// Sum up the force while aggregating atoms to temporarily render.
 
 // MARK: - Launch Application
 
