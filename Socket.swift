@@ -10,9 +10,11 @@ struct Socket {
     (parameters, rigidBody) = Self.createRigidBody(topology: topology)
     anchorIDs = Self.anchorIDs(topology: topology)
     
-//    for atomID in anchorIDs {
-//      parameters.atoms.masses[Int(atomID)] = 0
-//    }
+    _minimize()
+    
+    for atomID in anchorIDs {
+      parameters.atoms.masses[Int(atomID)] = 0
+    }
   }
   
   var atoms: [Atom] {

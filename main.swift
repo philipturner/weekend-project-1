@@ -92,23 +92,7 @@ func createPart(range: ClosedRange<UInt32>) -> Topology {
 @MainActor
 func createPin() -> Pin {
   let pinTopology = createPart(range: 3606...11756)
-  var pin = Pin(topology: pinTopology)
-  
-  let frames = minimize(
-    parameters: socket.parameters,
-    positions: socket.rigidBody.positions)
-  
-//  let newPositions = minimize(
-//    parameters: pin.parameters,
-//    positions: pin.rigidBody.positions,
-//    anchors: pin.handleIDs)
-//  
-//  var rigidBodyDesc = MM4RigidBodyDescriptor()
-//  rigidBodyDesc.masses = pin.parameters.atoms.masses
-//  rigidBodyDesc.positions = newPositions
-//  pin.rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
-  
-  return pin
+  return Pin(topology: pinTopology)
 }
 
 @MainActor
@@ -173,7 +157,6 @@ apply(
   masses: parameters.atoms.masses,
   handleIDs: pin.handleIDs)
 
-/*
 var frames: [[Atom]] = []
 @MainActor
 func createFrame() -> [Atom] {
@@ -188,6 +171,11 @@ func createFrame() -> [Atom] {
 }
 frames.append(createFrame())
 
+print(pin.rigidBody.positions.count)
+print(socket.rigidBody.positions.count)
+exit(0)
+
+/*
 for frameID in 1...frameCount {
   forceField.simulate(time: frameSimulationTime)
   
@@ -196,10 +184,6 @@ for frameID in 1...frameCount {
   frames.append(createFrame())
 }
  */
-
-let frames = minimize(
-  parameters: socket.parameters,
-  positions: socket.rigidBody.positions)
 
 // MARK: - Launch Application
 

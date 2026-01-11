@@ -15,3 +15,12 @@ _Never underestimate the person-hours cost of real engineering._
 Tom scaled the atom positions to larger than the actual diamond lattice constant, just to make the amorphous 5-membered ring transition easier to compile. That caused problems with energy minimization. It also artificially created a lot of thermal energy.
 
 Alternatively, AIREBO just uses an incorrect value for equilibrium C-C bond distance. And he was optimizing for ease of use with AIREBO.
+
+The initial strain energy is enough to raise the temperature to the following amounts. Note that each atom has 3 kT of energy: 3/2 kT in thermal kinetic energy, 3/2 kT in thermal potential energy.
+
+| Part   | Energy (eV) | Energy (zJ) | Atom Count | Temperature (K) |
+| ------ | ----------: | ----------: | ---------: | --------------: |
+| pin    | 214.22      | 34321.9     | 8151       | 101.7           |
+| socket | 37.46       | 6001.8      | 2898       | 50.0            |
+
+Part of the problem, is that the pin's strain energy can only be released, if you let the handle atoms relax during the minimization. I was making the mistake of freezing them. For context, handle atoms aren't frozen during dynamics; they're just a special category distinct from anchors. Handles are the atoms on which the force is applied (net force is distributed across them).

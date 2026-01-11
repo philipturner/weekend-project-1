@@ -10,6 +10,8 @@ struct Pin {
     (parameters, rigidBody) = Self.createRigidBody(topology: topology)
     handleIDs = Self.handleIDs(topology: topology)
     
+    _minimize()
+    
     rigidBody.centerOfMass += SIMD3(0, 0, -3)
   }
   
@@ -22,6 +24,17 @@ struct Pin {
       output.append(atom)
     }
     return output
+  }
+  
+  private mutating func _minimize() {
+    let frames = minimize(
+      parameters: parameters,
+      positions: rigidBody.positions)
+    
+    var rigidBodyDesc = MM4RigidBodyDescriptor()
+    rigidBodyDesc.masses = parameters.atoms.masses
+    rigidBodyDesc.positions = frames.last!.map(\.position)
+    rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
   }
   
   private static func handleIDs(topology: Topology) -> Set<UInt32> {
