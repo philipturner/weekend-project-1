@@ -10,12 +10,12 @@ import xTB
 let renderingOffline: Bool = false
 
 // The net force, in piconewtons.
-let netForce = SIMD3<Float>(0, 0, 1000)
+let netForce = SIMD3<Float>(0, 0, 1)
 
 // The simulation time per frame, in picoseconds. Frames are recorded and
 // nominally played back at 60 FPS.
 let frameSimulationTime: Double = 10.0 / 60
-let frameCount: Int = 60 * 5
+let frameCount: Int = 60 * 2
 let gifFrameSkipRate: Int = 1
 
 // MARK: - Compile Atoms
