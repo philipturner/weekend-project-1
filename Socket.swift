@@ -10,9 +10,9 @@ struct Socket {
     (parameters, rigidBody) = Self.createRigidBody(topology: topology)
     anchorIDs = Self.anchorIDs(topology: topology)
     
-    for atomID in anchorIDs {
-      parameters.atoms.masses[Int(atomID)] = 0
-    }
+//    for atomID in anchorIDs {
+//      parameters.atoms.masses[Int(atomID)] = 0
+//    }
   }
   
   var atoms: [Atom] {
@@ -24,6 +24,17 @@ struct Socket {
       output.append(atom)
     }
     return output
+  }
+  
+  private mutating func _minimize() {
+    let frames = minimize(
+      parameters: parameters,
+      positions: rigidBody.positions)
+    
+    var rigidBodyDesc = MM4RigidBodyDescriptor()
+    rigidBodyDesc.masses = parameters.atoms.masses
+    rigidBodyDesc.positions = frames.last!.map(\.position)
+    rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
   }
   
   private static func anchorIDs(topology: Topology) -> Set<UInt32> {

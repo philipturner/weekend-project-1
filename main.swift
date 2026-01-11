@@ -94,6 +94,10 @@ func createPin() -> Pin {
   let pinTopology = createPart(range: 3606...11756)
   var pin = Pin(topology: pinTopology)
   
+  let frames = minimize(
+    parameters: socket.parameters,
+    positions: socket.rigidBody.positions)
+  
 //  let newPositions = minimize(
 //    parameters: pin.parameters,
 //    positions: pin.rigidBody.positions,
@@ -194,9 +198,8 @@ for frameID in 1...frameCount {
  */
 
 let frames = minimize(
-  parameters: pin.parameters,
-  positions: pin.rigidBody.positions,
-  anchors: pin.handleIDs)
+  parameters: socket.parameters,
+  positions: socket.rigidBody.positions)
 
 // MARK: - Launch Application
 
@@ -312,19 +315,12 @@ func modifyAtoms() {
       application.atoms[atomID] = atom
     }
   } else {
-    var atoms = interpolate(
+    let atoms = interpolate(
       frames: frames,
       time: time - 1)
-    for atomID in pin.handleIDs {
-      atoms[Int(atomID)].atomicNumber = 8
-    }
     for atomID in atoms.indices {
       let atom = atoms[atomID]
-      if atom.atomicNumber == 8 {
-        application.atoms[atomID] = atom
-      } else {
-        application.atoms[atomID] = nil
-      }
+      application.atoms[atomID] = atom
     }
   }
 }
@@ -333,7 +329,7 @@ func modifyAtoms() {
 func modifyCamera() {
   let focalPoint = SIMD3<Float>(2, 2.8, 7)
   let rotation = Quaternion<Float>(
-    angle: Float.pi / 180 * 90,
+    angle: Float.pi / 180 * 110,
     axis: SIMD3(0, 1, 0))
   let cameraDistance: Float = 15
   

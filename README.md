@@ -9,3 +9,9 @@ Luckily, this pin has no 4-membered rings. Only 5-membered rings in the amorphou
 Also, because of the 5-membered rings, the mapping from diamond to silicon carbide is not trivial. But it could be possible.
 
 _Never underestimate the person-hours cost of real engineering._
+
+---
+
+Tom scaled the atom positions to larger than the actual diamond lattice constant, just to make the amorphous 5-membered ring transition easier to compile. That caused problems with energy minimization. It also artificially created a lot of thermal energy.
+
+Alternatively, AIREBO just uses an incorrect value for equilibrium C-C bond distance. And he was optimizing for ease of use with AIREBO.

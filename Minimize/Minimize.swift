@@ -6,18 +6,14 @@ func minimize(
   positions: [SIMD3<Float>],
   anchors: Set<UInt32> = []
 ) -> [[SIMD4<Float>]] {
-  var forceFieldParameters = parameters
-  for atomID in anchors {
-    forceFieldParameters.atoms.masses[Int(atomID)] = 0
-  }
-  
   var forceFieldDesc = MM4ForceFieldDescriptor()
   forceFieldDesc.parameters = parameters
   let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
 
   var minimizationDesc = FIREMinimizationDescriptor()
-//  minimizationDesc.anchors = anchors
+  minimizationDesc.anchors = anchors
   minimizationDesc.masses = parameters.atoms.masses
+  minimizationDesc.forceTolerance = 50
   minimizationDesc.positions = positions
   var minimization = FIREMinimization(descriptor: minimizationDesc)
   
