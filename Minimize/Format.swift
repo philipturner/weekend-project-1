@@ -14,8 +14,8 @@ struct Format {
     return repr
   }
   static func timePs<T: BinaryFloatingPoint>(_ x: T) -> String {
-    let xInFs = Float(x)
-    var repr = String(format: "%.2f", xInFs) + " ps"
+    let xInPs = Float(x)
+    var repr = String(format: "%.2f", xInPs) + " ps"
     repr = pad(repr, to: 9)
     return repr
   }
