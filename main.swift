@@ -7,8 +7,16 @@ import xTB
 
 // MARK: - User-Facing Options
 
+let renderingOffline: Bool = false
+
 // The net force, in piconewtons.
 let netForce = SIMD3<Float>(0, 0, 1000)
+
+// The simulation time per frame, in picoseconds. Frames are recorded and
+// nominally played back at 60 FPS.
+let frameSimulationTime: Double = 30.0 / 60
+let frameCount: Int = 60 * 5
+let gifFrameSkipRate: Int = 1
 
 // MARK: - Compile Atoms
 
@@ -165,6 +173,48 @@ frames.append(createFrame())
 
 // MARK: - Launch Application
 
+// Input: time in seconds
+// Output: atoms
+func interpolate(
+  frames: [[Atom]],
+  time: Float
+) -> [Atom] {
+  guard frames.count >= 1 else {
+    fatalError("Need at least one frame to know size of atom list.")
+  }
+  
+  let multiple60Hz = time * 60
+  var lowFrame = Int(multiple60Hz.rounded(.down))
+  var highFrame = lowFrame + 1
+  var lowInterpolationFactor = Float(highFrame) - multiple60Hz
+  var highInterpolationFactor = multiple60Hz - Float(lowFrame)
+  
+  if lowFrame < -1 {
+    fatalError("This should never happen.")
+  }
+  if lowFrame >= frames.count - 1 {
+    lowFrame = frames.count - 1
+    highFrame = frames.count - 1
+    lowInterpolationFactor = 1
+    highInterpolationFactor = 0
+  }
+  
+  var output: [Atom] = []
+  for atomID in frames[0].indices {
+    let lowAtom = frames[lowFrame][atomID]
+    let highAtom = frames[highFrame][atomID]
+    
+    var position: SIMD3<Float> = .zero
+    position += lowAtom.position * lowInterpolationFactor
+    position += highAtom.position * highInterpolationFactor
+    
+    var atom = lowAtom
+    atom.position = position
+    output.append(atom)
+  }
+  return output
+}
+
 @MainActor
 func createApplication() -> Application {
   // Set up the device.
@@ -175,15 +225,25 @@ func createApplication() -> Application {
   // Set up the display.
   var displayDesc = DisplayDescriptor()
   displayDesc.device = device
-  displayDesc.frameBufferSize = SIMD2<Int>(1920, 1080)
-  displayDesc.monitorID = device.fastestMonitorID
+  if renderingOffline {
+    displayDesc.frameBufferSize = SIMD2<Int>(1280, 720)
+  } else {
+    displayDesc.frameBufferSize = SIMD2<Int>(1920, 1080)
+  }
+  if !renderingOffline {
+    displayDesc.monitorID = device.fastestMonitorID
+  }
   let display = Display(descriptor: displayDesc)
   
   // Set up the application.
   var applicationDesc = ApplicationDescriptor()
   applicationDesc.device = device
   applicationDesc.display = display
-  applicationDesc.upscaleFactor = 3
+  if renderingOffline {
+    applicationDesc.upscaleFactor = 1
+  } else {
+    applicationDesc.upscaleFactor = 3
+  }
   
   applicationDesc.addressSpaceSize = 4_000_000
   applicationDesc.voxelAllocationSize = 500_000_000
@@ -193,6 +253,21 @@ func createApplication() -> Application {
   return application
 }
 let application = createApplication()
+
+@MainActor
+func createTime() -> Float {
+  if renderingOffline {
+    let elapsedFrames = gifFrameSkipRate * application.frameID
+    let frameRate: Int = 60
+    let seconds = Float(elapsedFrames) / Float(frameRate)
+    return seconds
+  } else {
+    let elapsedFrames = application.clock.frames
+    let frameRate = application.display.frameRate
+    let seconds = Float(elapsedFrames) / Float(frameRate)
+    return seconds
+  }
+}
 
 @MainActor
 func modifyAtoms() {
