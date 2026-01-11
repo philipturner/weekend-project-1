@@ -40,11 +40,11 @@ let mmp = MMP(string: fileString)
 // mol (pin1) def
 // mmp.selectSubRange((UInt32(3606)...11756).map { $0 })
 //
-// Ring, 6 atomic layers
+// Socket, 6 atomic layers
 // mol (socket1) def
 // mmp.selectSubRange((UInt32(23436)...25955).map { $0 })
 //
-// Ring, 7 atomic layers
+// Socket, 7 atomic layers
 // mol (socket template-copy1) def
 // mmp.selectSubRange((UInt32(42439)...45336).map { $0 }) [thick]
 
@@ -63,9 +63,9 @@ func createPart(range: ClosedRange<UInt32>) -> Topology {
   
   return topology
 }
-let ring6Topology = createPart(range: 23436...25955)
-let ring7Topology = createPart(range: 42439...45336)
 let pinTopology = createPart(range: 3606...11756)
+let socket6Topology = createPart(range: 23436...25955)
+let socket7Topology = createPart(range: 42439...45336)
 
 // MARK: - Launch Application
 
@@ -100,18 +100,25 @@ let application = createApplication()
 
 @MainActor
 func modifyAtoms() {
-  let topology = pinTopology
-  for atomID in topology.atoms.indices {
-    let atom = topology.atoms[atomID]
+  for atomID in pinTopology.atoms.indices {
+    let atom = pinTopology.atoms[atomID]
     application.atoms[atomID] = atom
+  }
+  
+  let socketTopology = socket6Topology
+  for atomID in socketTopology.atoms.indices {
+    let atom = socketTopology.atoms[atomID]
+    
+    let offset = pinTopology.atoms.count
+    application.atoms[offset + atomID] = atom
   }
 }
 
 @MainActor
 func modifyCamera() {
-  let focalPoint = SIMD3<Float>(0, 0, 0)
+  let focalPoint = SIMD3<Float>(0, 2, 6)
   let rotation = Quaternion<Float>(
-    angle: Float.pi / 180 * 0,
+    angle: Float.pi / 180 * 90,
     axis: SIMD3(0, 1, 0))
   let cameraDistance: Float = 20
   
