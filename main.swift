@@ -36,14 +36,17 @@ let mmp = MMP(string: fileString)
 //
 // # Parsed the needed components from 8Tooth.mmp
 //
+// Pin
+// mol (pin1) def
+// mmp.selectSubRange((UInt32(3606)...11756).map { $0 })
+//
 // Ring, 6 atomic layers
-//mmp.selectSubRange((UInt32(23436)...25955).map { $0 })
+// mol (socket1) def
+// mmp.selectSubRange((UInt32(23436)...25955).map { $0 })
 //
 // Ring, 7 atomic layers
-//mmp.selectSubRange((UInt32(42439)...45336).map { $0 }) [thick]
-//
-// Pin
-//mmp.selectSubRange((UInt32(3606)...11756).map { $0 })
+// mol (socket template-copy1) def
+// mmp.selectSubRange((UInt32(42439)...45336).map { $0 }) [thick]
 
 @MainActor
 func createPart(range: ClosedRange<UInt32>) -> Topology {
@@ -60,6 +63,9 @@ func createPart(range: ClosedRange<UInt32>) -> Topology {
   
   return topology
 }
+let ring6Topology = createPart(range: 23436...25955)
+let ring7Topology = createPart(range: 42439...45336)
+let pinTopology = createPart(range: 3606...11756)
 
 // MARK: - Launch Application
 
@@ -92,16 +98,22 @@ func createApplication() -> Application {
 }
 let application = createApplication()
 
-for atomID in mmp.topology.atoms.indices {
-  let atom = mmp.topology.atoms[atomID]
-  application.atoms[atomID] = atom
+@MainActor
+func modifyAtoms() {
+  let topology = pinTopology
+  for atomID in topology.atoms.indices {
+    let atom = topology.atoms[atomID]
+    application.atoms[atomID] = atom
+  }
 }
 
 @MainActor
 func modifyCamera() {
+  let focalPoint = SIMD3<Float>(0, 0, 0)
   let rotation = Quaternion<Float>(
-    angle: Float.pi / 180 * 45,
+    angle: Float.pi / 180 * 0,
     axis: SIMD3(0, 1, 0))
+  let cameraDistance: Float = 20
   
   func rotate(_ vector: SIMD3<Float>) -> SIMD3<Float> {
     var output = rotation.act(on: vector)
@@ -115,20 +127,15 @@ func modifyCamera() {
   application.camera.basis.0 = rotate(SIMD3(1, 0, 0))
   application.camera.basis.1 = rotate(SIMD3(0, 1, 0))
   application.camera.basis.2 = rotate(SIMD3(0, 0, 1))
+  application.camera.fovAngleVertical = Float.pi / 180 * 60
   
-  let fovAngleVertical = Float.pi / 180 * 60
-  let cameraDistance = Float(20)
-  let focalPoint = SIMD3<Float>(0, 0, 0)
-  func createPosition() -> SIMD3<Float> {
-    var output = focalPoint
-    output += rotation.act(on: SIMD3(0, 0, cameraDistance))
-    return output
-  }
-  application.camera.position = createPosition()
-  application.camera.fovAngleVertical = fovAngleVertical
+  var position = focalPoint
+  position += rotation.act(on: SIMD3(0, 0, cameraDistance))
+  application.camera.position = position
 }
 
 application.run {
+  modifyAtoms()
   modifyCamera()
   
   var image = application.render()
