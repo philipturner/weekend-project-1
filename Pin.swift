@@ -12,7 +12,7 @@ struct Pin {
     
     _minimize()
     
-    rigidBody.centerOfMass += SIMD3(0, 0, -2.6)
+    rigidBody.centerOfMass += SIMD3(0, 0, -2.3)
   }
   
   var atoms: [Atom] {

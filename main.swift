@@ -10,12 +10,12 @@ import xTB
 let renderingOffline: Bool = false
 
 // The net force, in piconewtons.
-let netForce = SIMD3<Float>(0, 0, 1000)
+let netForce = SIMD3<Float>(0, 0, 15_000)
 
 // The simulation time per frame, in picoseconds. Frames are recorded and
 // nominally played back at 60 FPS.
 let frameSimulationTime: Double = 10.0 / 60
-let frameCount: Int = 60 * 1
+let frameCount: Int = 60 * 3
 let gifFrameSkipRate: Int = 1
 
 // MARK: - Compile Atoms
@@ -171,7 +171,6 @@ func createFrame() -> [Atom] {
 }
 frames.append(createFrame())
 
-/*
 for frameID in 1...frameCount {
   forceField.simulate(time: frameSimulationTime)
   frames.append(createFrame())
@@ -198,7 +197,6 @@ for frameID in 1...frameCount {
   print("max force: \(Format.force(maximumForce))", terminator: " | ")
   print()
 }
- */
 
 // MARK: - Launch Application
 
@@ -313,7 +311,7 @@ func modifyAtoms() {
   
   if time < freezeTimestamp {
     var pinCopy = pin
-    let positionDelta = SIMD3<Float>(0, 0, -2.4)
+    let positionDelta = SIMD3<Float>(0, 0, -2.7)
     pinCopy.rigidBody.centerOfMass += SIMD3<Double>(positionDelta)
     
     let atomsToRender = pinCopy.atoms + socket.atoms
@@ -326,7 +324,7 @@ func modifyAtoms() {
     progress /= (moveTimestamp - freezeTimestamp)
     
     var pinCopy = pin
-    let positionDelta = SIMD3<Float>(0, 0, -2.4) * progress
+    let positionDelta = SIMD3<Float>(0, 0, -2.7) * progress
     pinCopy.rigidBody.centerOfMass += SIMD3<Double>(positionDelta)
     
     let atomsToRender = pinCopy.atoms + socket.atoms
