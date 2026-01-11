@@ -94,17 +94,8 @@ let socket = createSocket()
 // The net force, in piconewtons.
 let netForce: Float = 1000
 
-func apply(
-  netForce: Float,
-  forceField: MM4ForceField,
-  masses: [Float],
-  handleIDs: Set<UInt32>
-) {
-  
-}
-
 @MainActor
-func createForceField() -> MM4ForceField {
+func createForceField() -> (MM4Parameters, MM4ForceField) {
   var parameters = MM4Parameters()
   parameters.append(contentsOf: pin.parameters)
   parameters.append(contentsOf: socket.parameters)
@@ -119,13 +110,24 @@ func createForceField() -> MM4ForceField {
   positions += socket.rigidBody.positions
   forceField.positions = positions
   
-  apply(
-    netForce: netForce,
-    forceField: forceField,
-    masses: parameters.atoms.masses,
-    handleIDs: pin.handleIDs)
-  return forceField
+  
+  return (parameters, forceField)
 }
+let (parameters, forceField) = createForceField()
+
+func apply(
+  netForce: Float,
+  forceField: MM4ForceField,
+  masses: [Float],
+  handleIDs: Set<UInt32>
+) {
+  
+}
+apply(
+  netForce: netForce,
+  forceField: forceField,
+  masses: parameters.atoms.masses,
+  handleIDs: pin.handleIDs)
 
 // MARK: - Launch Application
 
