@@ -119,7 +119,7 @@ func apply(
   forceField: MM4ForceField,
   masses: [Float],
   handleIDs: Set<UInt32>
-) {
+) -> [SIMD3<Float>] { // TEMPORARY return
   var totalMass: Float = 0
   for atomID in handleIDs {
     let mass = masses[Int(atomID)]
@@ -138,14 +138,28 @@ func apply(
     externalForces[Int(atomID)] = force
   }
   forceField.externalForces = externalForces
+  
+  return externalForces
 }
-apply(
+let tempExternalForces = apply(
   netForce: netForce,
   forceField: forceField,
   masses: parameters.atoms.masses,
   handleIDs: pin.handleIDs)
 
 // Sum up the force while aggregating atoms to temporarily render.
+var actualNetForce: SIMD3<Float> = .zero
+var atomsToRender: [Atom] = []
+for atomID in parameters.atoms.indices {
+  let atomicNumber = parameters.atoms.atomicNumbers[atomID]
+  let position = forceField.positions[atomID]
+  let force = tempExternalForces[atomID]
+  actualNetForce += force
+  
+  let atom = Atom(position: position, atomicNumber: atomicNumber)
+  atomsToRender.append(atom)
+}
+print(actualNetForce)
 
 // MARK: - Launch Application
 
@@ -180,19 +194,9 @@ let application = createApplication()
 
 @MainActor
 func modifyAtoms() {
-  let pinAtoms = pin.atoms
-  let socketAtoms = socket.atoms
-  
-  for atomID in pinAtoms.indices {
-    let atom = pinAtoms[atomID]
+  for atomID in atomsToRender.indices {
+    let atom = atomsToRender[atomID]
     application.atoms[atomID] = atom
-  }
-  
-  for atomID in socketAtoms.indices {
-    let atom = socketAtoms[atomID]
-    
-    let offset = pinAtoms.count
-    application.atoms[offset + atomID] = atom
   }
 }
 
