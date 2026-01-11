@@ -94,13 +94,19 @@ func createPin() -> Pin {
   let pinTopology = createPart(range: 3606...11756)
   var pin = Pin(topology: pinTopology)
   
-  var parameters = pin.parameters
-  for atomID in pin.handleIDs {
-    parameters.atoms.masses[Int(atomID)] = 0
-  }
+  print(pin.handleIDs.count)
+  print(pin.rigidBody.positions.count)
   let newPositions = minimize(
-    parameters: parameters,
-    positions: pin.rigidBody.positions)
+    parameters: pin.parameters,
+    positions: pin.rigidBody.positions,
+    anchors: pin.handleIDs)
+  
+  var rigidBodyDesc = MM4RigidBodyDescriptor()
+  rigidBodyDesc.masses = pin.parameters.atoms.masses
+  rigidBodyDesc.positions = newPositions
+  pin.rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
+  
+  return pin
 }
 
 @MainActor
