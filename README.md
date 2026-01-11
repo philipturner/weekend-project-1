@@ -30,3 +30,5 @@ Part of the problem, is that the pin's strain energy can only be released, if yo
 No matter what I try, it just won't go in! The parts aren't made for each other! I tried messing with every variable possible, and minimizing the wobble from the constant force going off-axis.
 
 If this specific design does work, its operation is fragile. Perhaps the act of going in the hole is just a rare thermal vibration where the prongs simultaneously move inward to avoid hitting the ring.
+
+[Diamond pin and socket don’t become one (YouTube)](https://www.youtube.com/watch?v=VXF3BnZe0I4)
