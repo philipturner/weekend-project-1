@@ -14,7 +14,7 @@ let netForce = SIMD3<Float>(0, 0, 1000)
 
 // The simulation time per frame, in picoseconds. Frames are recorded and
 // nominally played back at 60 FPS.
-let frameSimulationTime: Double = 30.0 / 60
+let frameSimulationTime: Double = 10.0 / 60
 let frameCount: Int = 60 * 5
 let gifFrameSkipRate: Int = 1
 
@@ -171,6 +171,14 @@ func createFrame() -> [Atom] {
 }
 frames.append(createFrame())
 
+for frameID in 1...frameCount {
+  forceField.simulate(time: frameSimulationTime)
+  
+  let time = Double(frameID) * frameSimulationTime
+  print("t = \(String(format: "%.3f", time)) ps")
+  frames.append(createFrame())
+}
+
 // MARK: - Launch Application
 
 // Input: time in seconds
@@ -269,17 +277,29 @@ func createTime() -> Float {
   }
 }
 
+// Extra animation frames bring the pin into position, from farther away.
+// Start at -5 nm, and at -3 nm.
+// Then replay the MD simulation.
+//
+// Repeat the above twice: from 110°, then 0°.
 @MainActor
 func modifyAtoms() {
-  // Extra animation frames bring the pin into position, from farther away.
-  // Start at -5 nm, and at -3 nm.
-  // Then replay the MD simulation.
-  //
-  // Repeat the above twice: from 110°, then 0°.
-  let atomsToRender = frames[0]
-  for atomID in atomsToRender.indices {
-    let atom = atomsToRender[atomID]
-    application.atoms[atomID] = atom
+  let time = createTime()
+  
+  if time < 1 {
+    let atomsToRender = frames[0]
+    for atomID in atomsToRender.indices {
+      let atom = atomsToRender[atomID]
+      application.atoms[atomID] = atom
+    }
+  } else {
+    let atoms = interpolate(
+      frames: frames,
+      time: time - 1)
+    for atomID in atoms.indices {
+      let atom = atoms[atomID]
+      application.atoms[atomID] = atom
+    }
   }
 }
 
