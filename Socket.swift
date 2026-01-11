@@ -12,9 +12,11 @@ struct Socket {
     
     _minimize()
     
-    for atomID in anchorIDs {
-      parameters.atoms.masses[Int(atomID)] = 0
-    }
+    rigidBody.centerOfMass += SIMD3(0, 0, 10)
+    
+//    for atomID in anchorIDs {
+//      parameters.atoms.masses[Int(atomID)] = 0
+//    }
   }
   
   var atoms: [Atom] {

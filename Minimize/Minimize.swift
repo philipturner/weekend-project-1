@@ -31,7 +31,7 @@ func minimize(
     return output
   }
   
-  let maxIterationCount: Int = 2000
+  let maxIterationCount: Int = 500
   for trialID in 0..<maxIterationCount {
     frames.append(createFrame())
     forceField.positions = minimization.positions
@@ -60,12 +60,20 @@ func minimize(
     
     if converged {
       print("converged at trial \(trialID)")
-      frames.append(createFrame())
       break
     } else if trialID == maxIterationCount - 1 {
       print("failed to converge!")
     }
   }
+  
+  var rigidBodyDesc = MM4RigidBodyDescriptor()
+  rigidBodyDesc.masses = parameters.atoms.masses
+  rigidBodyDesc.positions = frames.last!.map(\.position)
+  let rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
+  
+  forceField.positions = rigidBody.positions
+  let energy = forceField.energy.potential
+  print("energy: \(Format.energy(energy))")
   
   return frames
 }

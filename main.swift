@@ -110,7 +110,7 @@ let socket = createSocket()
 func createForceField() -> (MM4Parameters, MM4ForceField) {
   var parameters = MM4Parameters()
   parameters.append(contentsOf: pin.parameters)
-  parameters.append(contentsOf: socket.parameters)
+//  parameters.append(contentsOf: socket.parameters)
   
   var forceFieldDesc = MM4ForceFieldDescriptor()
   forceFieldDesc.integrator = .multipleTimeStep
@@ -119,8 +119,10 @@ func createForceField() -> (MM4Parameters, MM4ForceField) {
   
   var positions: [SIMD3<Float>] = []
   positions += pin.rigidBody.positions
-  positions += socket.rigidBody.positions
+//  positions += socket.rigidBody.positions
   forceField.positions = positions
+  forceField.velocities = Array(
+    repeating: .zero, count: positions.count)
   
   return (parameters, forceField)
 }
@@ -151,11 +153,11 @@ func apply(
   }
   forceField.externalForces = externalForces
 }
-apply(
-  netForce: netForce,
-  forceField: forceField,
-  masses: parameters.atoms.masses,
-  handleIDs: pin.handleIDs)
+//apply(
+//  netForce: netForce,
+//  forceField: forceField,
+//  masses: parameters.atoms.masses,
+//  handleIDs: pin.handleIDs)
 
 var frames: [[Atom]] = []
 @MainActor
@@ -171,19 +173,28 @@ func createFrame() -> [Atom] {
 }
 frames.append(createFrame())
 
-print(pin.rigidBody.positions.count)
-print(socket.rigidBody.positions.count)
-exit(0)
-
-/*
 for frameID in 1...frameCount {
-  forceField.simulate(time: frameSimulationTime)
+//  forceField.simulate(time: frameSimulationTime)
   
   let time = Double(frameID) * frameSimulationTime
-  print("t = \(String(format: "%.3f", time)) ps")
+//  print("t = \(String(format: "%.3f", time)) ps")
   frames.append(createFrame())
+  
+  let forces = forceField.forces
+  let positions = forceField.positions
+  var maximumForce: Float = .zero
+  for atomID in positions.indices {
+    let force = forces[atomID]
+    let forceMagnitude = (force * force).sum().squareRoot()
+    maximumForce = max(maximumForce, forceMagnitude)
+  }
+  
+  let energy = forceField.energy.potential
+  print("time: \(Format.time(time))", terminator: " | ")
+  print("energy: \(Format.energy(energy))", terminator: " | ")
+  print("max force: \(Format.force(maximumForce))", terminator: " | ")
+  print()
 }
- */
 
 // MARK: - Launch Application
 
