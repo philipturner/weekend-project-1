@@ -92,7 +92,15 @@ func createPart(range: ClosedRange<UInt32>) -> Topology {
 @MainActor
 func createPin() -> Pin {
   let pinTopology = createPart(range: 3606...11756)
-  return Pin(topology: pinTopology)
+  var pin = Pin(topology: pinTopology)
+  
+  var parameters = pin.parameters
+  for atomID in pin.handleIDs {
+    parameters.atoms.masses[Int(atomID)] = 0
+  }
+  let newPositions = minimize(
+    parameters: parameters,
+    positions: pin.rigidBody.positions)
 }
 
 @MainActor
