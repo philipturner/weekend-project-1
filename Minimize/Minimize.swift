@@ -7,13 +7,14 @@ func minimize(
   anchors: Set<UInt32> = []
 ) -> [[SIMD4<Float>]] {
   var forceFieldDesc = MM4ForceFieldDescriptor()
+  forceFieldDesc.integrator = .verlet
   forceFieldDesc.parameters = parameters
   let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
-
+  
   var minimizationDesc = FIREMinimizationDescriptor()
   minimizationDesc.anchors = anchors
   minimizationDesc.masses = parameters.atoms.masses
-  minimizationDesc.forceTolerance = 50
+  minimizationDesc.forceTolerance = 10
   minimizationDesc.positions = positions
   var minimization = FIREMinimization(descriptor: minimizationDesc)
   
@@ -31,49 +32,50 @@ func minimize(
     return output
   }
   
-  let maxIterationCount: Int = 500
-  for trialID in 0..<maxIterationCount {
-    frames.append(createFrame())
-    forceField.positions = minimization.positions
-    
-    let forces = forceField.forces
-    var maximumForce: Float = .zero
-    for atomID in positions.indices {
-      if anchors.contains(UInt32(atomID)) {
-        continue
+  for _ in 0..<10 {
+    let maxIterationCount: Int = 500
+    for trialID in 0..<maxIterationCount {
+      forceField.positions = minimization.positions
+      
+      let forces = forceField.forces
+      var maximumForce: Float = .zero
+      for atomID in positions.indices {
+        if anchors.contains(UInt32(atomID)) {
+          continue
+        }
+        let force = forces[atomID]
+        let forceMagnitude = (force * force).sum().squareRoot()
+        maximumForce = max(maximumForce, forceMagnitude)
       }
-      let force = forces[atomID]
-      let forceMagnitude = (force * force).sum().squareRoot()
-      maximumForce = max(maximumForce, forceMagnitude)
+      
+      let energy = forceField.energy.potential
+      print("time: \(Format.time(minimization.time))", terminator: " | ")
+      print("energy: \(Format.energy(energy))", terminator: " | ")
+      print("max force: \(Format.force(maximumForce))", terminator: " | ")
+      
+      let converged = minimization.step(forces: forces)
+      if !converged {
+        print("Δt: \(Format.time(minimization.Δt))", terminator: " | ")
+      }
+      print()
+      
+      if converged {
+        print("converged at trial \(trialID)")
+        break
+      } else if trialID == maxIterationCount - 1 {
+        print("failed to converge!")
+      }
     }
     
-    let energy = forceField.energy.potential
-    print("time: \(Format.time(minimization.time))", terminator: " | ")
-    print("energy: \(Format.energy(energy))", terminator: " | ")
-    print("max force: \(Format.force(maximumForce))", terminator: " | ")
-    
-    let converged = minimization.step(forces: forces)
-    if !converged {
-      print("Δt: \(Format.time(minimization.Δt))", terminator: " | ")
-    }
-    print()
-    
-    if converged {
-      print("converged at trial \(trialID)")
-      break
-    } else if trialID == maxIterationCount - 1 {
-      print("failed to converge!")
-    }
+    forceField.positions = minimization.positions
+    forceField.velocities = Array(
+      repeating: .zero, count: positions.count)
+    forceField.simulate(time: 0.25)
+    forceField.velocities = Array(
+      repeating: .zero, count: positions.count)
+    minimization.positions = forceField.positions
   }
   
-  var rigidBodyDesc = MM4RigidBodyDescriptor()
-  rigidBodyDesc.masses = parameters.atoms.masses
-  rigidBodyDesc.positions = frames.last!.map(\.position)
-  let rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
-  
-  forceField.positions = rigidBody.positions
-  let energy = forceField.energy.potential
-  print("energy: \(Format.energy(energy))")
-  
+  frames.append(createFrame())
   return frames
 }

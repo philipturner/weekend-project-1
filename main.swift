@@ -110,19 +110,17 @@ let socket = createSocket()
 func createForceField() -> (MM4Parameters, MM4ForceField) {
   var parameters = MM4Parameters()
   parameters.append(contentsOf: pin.parameters)
-//  parameters.append(contentsOf: socket.parameters)
+  parameters.append(contentsOf: socket.parameters)
   
   var forceFieldDesc = MM4ForceFieldDescriptor()
-  forceFieldDesc.integrator = .multipleTimeStep
+  forceFieldDesc.integrator = .verlet // doesn't spawn spurious vibrations
   forceFieldDesc.parameters = parameters
   let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
   
   var positions: [SIMD3<Float>] = []
   positions += pin.rigidBody.positions
-//  positions += socket.rigidBody.positions
+  positions += socket.rigidBody.positions
   forceField.positions = positions
-  forceField.velocities = Array(
-    repeating: .zero, count: positions.count)
   
   return (parameters, forceField)
 }
@@ -174,11 +172,11 @@ func createFrame() -> [Atom] {
 frames.append(createFrame())
 
 for frameID in 1...frameCount {
-//  forceField.simulate(time: frameSimulationTime)
+  forceField.simulate(time: frameSimulationTime)
+  frames.append(createFrame())
   
   let time = Double(frameID) * frameSimulationTime
-//  print("t = \(String(format: "%.3f", time)) ps")
-  frames.append(createFrame())
+  let energy = forceField.energy.potential
   
   let forces = forceField.forces
   let positions = forceField.positions
@@ -189,7 +187,6 @@ for frameID in 1...frameCount {
     maximumForce = max(maximumForce, forceMagnitude)
   }
   
-  let energy = forceField.energy.potential
   print("time: \(Format.time(time))", terminator: " | ")
   print("energy: \(Format.energy(energy))", terminator: " | ")
   print("max force: \(Format.force(maximumForce))", terminator: " | ")

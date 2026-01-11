@@ -12,8 +12,6 @@ struct Socket {
     
     _minimize()
     
-    rigidBody.centerOfMass += SIMD3(0, 0, 10)
-    
 //    for atomID in anchorIDs {
 //      parameters.atoms.masses[Int(atomID)] = 0
 //    }
