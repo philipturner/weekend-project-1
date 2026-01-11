@@ -301,9 +301,9 @@ func createTime() -> Float {
 // Extra animation frames bring the pin into position, from farther away.
 // Start at -5 nm, and at -3 nm.
 // Then replay the MD simulation.
-// Just use two separate GIFs (two separate program executions).
 //
 // Repeat the above twice: from 110°, then 0°.
+// Just use two separate GIFs (two separate program executions).
 @MainActor
 func modifyAtoms() {
   let time = createTime()
