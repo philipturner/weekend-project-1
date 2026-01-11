@@ -171,6 +171,7 @@ func createFrame() -> [Atom] {
 }
 frames.append(createFrame())
 
+/*
 for frameID in 1...frameCount {
   forceField.simulate(time: frameSimulationTime)
   frames.append(createFrame())
@@ -197,6 +198,7 @@ for frameID in 1...frameCount {
   print("max force: \(Format.force(maximumForce))", terminator: " | ")
   print()
 }
+ */
 
 // MARK: - Launch Application
 
@@ -299,14 +301,35 @@ func createTime() -> Float {
 // Extra animation frames bring the pin into position, from farther away.
 // Start at -5 nm, and at -3 nm.
 // Then replay the MD simulation.
+// Just use two separate GIFs (two separate program executions).
 //
 // Repeat the above twice: from 110°, then 0°.
 @MainActor
 func modifyAtoms() {
   let time = createTime()
   
-  if time < 1 {
-    let atomsToRender = frames[0]
+  let freezeTimestamp: Float = 1
+  let moveTimestamp: Float = freezeTimestamp + 1
+  
+  if time < freezeTimestamp {
+    var pinCopy = pin
+    let positionDelta = SIMD3<Float>(0, 0, -2.4)
+    pinCopy.rigidBody.centerOfMass += SIMD3<Double>(positionDelta)
+    
+    let atomsToRender = pinCopy.atoms + socket.atoms
+    for atomID in atomsToRender.indices {
+      let atom = atomsToRender[atomID]
+      application.atoms[atomID] = atom
+    }
+  } else if time < moveTimestamp {
+    var progress = (moveTimestamp - time)
+    progress /= (moveTimestamp - freezeTimestamp)
+    
+    var pinCopy = pin
+    let positionDelta = SIMD3<Float>(0, 0, -2.4) * progress
+    pinCopy.rigidBody.centerOfMass += SIMD3<Double>(positionDelta)
+    
+    let atomsToRender = pinCopy.atoms + socket.atoms
     for atomID in atomsToRender.indices {
       let atom = atomsToRender[atomID]
       application.atoms[atomID] = atom
@@ -314,7 +337,7 @@ func modifyAtoms() {
   } else {
     let atoms = interpolate(
       frames: frames,
-      time: time - 1)
+      time: time - moveTimestamp)
     for atomID in atoms.indices {
       let atom = atoms[atomID]
       application.atoms[atomID] = atom
