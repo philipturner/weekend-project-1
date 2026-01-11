@@ -13,6 +13,12 @@ struct Format {
     repr = pad(repr, to: 9)
     return repr
   }
+  static func timePs<T: BinaryFloatingPoint>(_ x: T) -> String {
+    let xInFs = Float(x)
+    var repr = String(format: "%.2f", xInFs) + " ps"
+    repr = pad(repr, to: 9)
+    return repr
+  }
   static func energy(_ x: Double) -> String {
     var repr = String(format: "%.2f", x / 160.218) + " eV"
     repr = pad(repr, to: 13)

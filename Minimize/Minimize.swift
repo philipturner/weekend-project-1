@@ -10,13 +10,7 @@ func minimize(
   forceFieldDesc.integrator = .verlet
   forceFieldDesc.parameters = parameters
   let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
-  
-  var minimizationDesc = FIREMinimizationDescriptor()
-  minimizationDesc.anchors = anchors
-  minimizationDesc.masses = parameters.atoms.masses
-  minimizationDesc.forceTolerance = 10
-  minimizationDesc.positions = positions
-  var minimization = FIREMinimization(descriptor: minimizationDesc)
+  forceField.positions = positions
   
   // WARNING: May approach limit of device memory.
   // 10k atoms * 16 bytes * 2000 frames = 320 MB
@@ -25,15 +19,21 @@ func minimize(
     var output: [SIMD4<Float>] = []
     for atomID in positions.indices {
       let atomicNumber = parameters.atoms.atomicNumbers[atomID]
-      let position = minimization.positions[atomID]
+      let position = forceField.positions[atomID]
       let atom = Atom(position: position, atomicNumber: atomicNumber)
       output.append(atom)
     }
     return output
   }
   
-  for _ in 0..<10 {
-    let maxIterationCount: Int = 500
+  func runMinimizationSteps(maxIterationCount: Int) {
+    var minimizationDesc = FIREMinimizationDescriptor()
+    minimizationDesc.anchors = anchors
+    minimizationDesc.masses = parameters.atoms.masses
+    minimizationDesc.forceTolerance = 10
+    minimizationDesc.positions = forceField.positions
+    var minimization = FIREMinimization(descriptor: minimizationDesc)
+    
     for trialID in 0..<maxIterationCount {
       forceField.positions = minimization.positions
       
@@ -66,15 +66,38 @@ func minimize(
         print("failed to converge!")
       }
     }
-    
-    forceField.positions = minimization.positions
+  }
+  
+  runMinimizationSteps(maxIterationCount: 500)
+  
+  for i in 0..<10 {
     forceField.velocities = Array(
       repeating: .zero, count: positions.count)
     forceField.simulate(time: 0.25)
     forceField.velocities = Array(
       repeating: .zero, count: positions.count)
-    minimization.positions = forceField.positions
+    
+    let forces = forceField.forces
+    var maximumForce: Float = .zero
+    for atomID in positions.indices {
+      if anchors.contains(UInt32(atomID)) {
+        continue
+      }
+      let force = forces[atomID]
+      let forceMagnitude = (force * force).sum().squareRoot()
+      maximumForce = max(maximumForce, forceMagnitude)
+    }
+    
+    let time = Double(i + 1) * 0.25
+    let energy = forceField.energy.potential
+    print("time: \(Format.timePs(time))", terminator: " | ")
+    print("energy: \(Format.energy(energy))", terminator: " | ")
+    print("max force: \(Format.force(maximumForce))", terminator: " | ")
+    print()
   }
+  print("completed 10 iterations of equilibriation")
+  
+  runMinimizationSteps(maxIterationCount: 500)
   
   frames.append(createFrame())
   return frames
