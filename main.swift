@@ -47,6 +47,16 @@ let mmp = MMP(string: fileString)
 // Socket, 7 atomic layers
 // mol (socket template-copy1) def
 // mmp.selectSubRange((UInt32(42439)...45336).map { $0 }) [thick]
+//
+// # YouTube data
+//
+// Ring: 7 + vdW gap + 7
+// Stub: 13
+//
+// Ring: 7
+// Stub: 5
+//
+// Example from this file: stub is indeed 5 layers tall
 
 @MainActor
 func createPart(range: ClosedRange<UInt32>) -> Topology {
