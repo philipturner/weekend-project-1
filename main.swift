@@ -5,6 +5,13 @@ import MolecularRenderer
 import QuaternionModule
 import xTB
 
+// MARK: - User-Facing Options
+
+// The net force, in piconewtons.
+let netForce = SIMD3<Float>(0, 0, 1000)
+
+// MARK: - Compile Atoms
+
 var path = FileManager.default.currentDirectoryPath
 path += "/Sources/Workspace/Diamond_Machine_Parts/Blocks/"
 path += "8_tooth_gear_clip_bushing.mmp"
@@ -91,9 +98,6 @@ let socket = createSocket()
 
 // MARK: - Run Simulation
 
-// The net force, in piconewtons.
-let netForce = SIMD3<Float>(0, 0, 1000)
-
 @MainActor
 func createForceField() -> (MM4Parameters, MM4ForceField) {
   var parameters = MM4Parameters()
@@ -119,7 +123,7 @@ func apply(
   forceField: MM4ForceField,
   masses: [Float],
   handleIDs: Set<UInt32>
-) -> [SIMD3<Float>] { // TEMPORARY return
+) {
   var totalMass: Float = 0
   for atomID in handleIDs {
     let mass = masses[Int(atomID)]
@@ -138,28 +142,26 @@ func apply(
     externalForces[Int(atomID)] = force
   }
   forceField.externalForces = externalForces
-  
-  return externalForces
 }
-let tempExternalForces = apply(
+apply(
   netForce: netForce,
   forceField: forceField,
   masses: parameters.atoms.masses,
   handleIDs: pin.handleIDs)
 
-// Sum up the force while aggregating atoms to temporarily render.
-var actualNetForce: SIMD3<Float> = .zero
-var atomsToRender: [Atom] = []
-for atomID in parameters.atoms.indices {
-  let atomicNumber = parameters.atoms.atomicNumbers[atomID]
-  let position = forceField.positions[atomID]
-  let force = tempExternalForces[atomID]
-  actualNetForce += force
-  
-  let atom = Atom(position: position, atomicNumber: atomicNumber)
-  atomsToRender.append(atom)
+var frames: [[Atom]] = []
+@MainActor
+func createFrame() -> [Atom] {
+  var output: [SIMD4<Float>] = []
+  for atomID in parameters.atoms.indices {
+    let atomicNumber = parameters.atoms.atomicNumbers[atomID]
+    let position = forceField.positions[atomID]
+    let atom = Atom(position: position, atomicNumber: atomicNumber)
+    output.append(atom)
+  }
+  return output
 }
-print(actualNetForce)
+frames.append(createFrame())
 
 // MARK: - Launch Application
 
@@ -173,7 +175,7 @@ func createApplication() -> Application {
   // Set up the display.
   var displayDesc = DisplayDescriptor()
   displayDesc.device = device
-  displayDesc.frameBufferSize = SIMD2<Int>(1620, 1620)
+  displayDesc.frameBufferSize = SIMD2<Int>(1920, 1080)
   displayDesc.monitorID = device.fastestMonitorID
   let display = Display(descriptor: displayDesc)
   
@@ -194,6 +196,7 @@ let application = createApplication()
 
 @MainActor
 func modifyAtoms() {
+  let atomsToRender = frames[0]
   for atomID in atomsToRender.indices {
     let atom = atomsToRender[atomID]
     application.atoms[atomID] = atom
@@ -204,9 +207,9 @@ func modifyAtoms() {
 func modifyCamera() {
   let focalPoint = SIMD3<Float>(2, 2.5, 7)
   let rotation = Quaternion<Float>(
-    angle: Float.pi / 180 * 90,
+    angle: Float.pi / 180 * 105,
     axis: SIMD3(0, 1, 0))
-  let cameraDistance: Float = 20
+  let cameraDistance: Float = 10
   
   func rotate(_ vector: SIMD3<Float>) -> SIMD3<Float> {
     var output = rotation.act(on: vector)
