@@ -8,7 +8,7 @@ import xTB
 
 // MARK: - User-Facing Options
 
-let renderingOffline: Bool = false
+let renderingOffline: Bool = true
 
 // The net force, in piconewtons.
 let netForce1 = SIMD3<Float>(0, 0, 10_000)
@@ -17,11 +17,12 @@ let netForce2 = SIMD3<Float>(0, 0, 0)
 // The simulation time per frame, in picoseconds. Frames are recorded and
 // nominally played back at 60 FPS.
 let frameSimulationTime: Double = 10.0 / 60
-let frameCount1: Int = 60 * 1
+let frameCount1: Int = 60 * 7
 let frameCount2: Int = 60 * 0
 let gifFrameSkipRate: Int = 1
 
 let frameCount = 60 + 60 + frameCount1 + 60
+let cameraAngleDegrees: Float = 0
 
 // MARK: - Compile Atoms
 
@@ -406,7 +407,7 @@ func modifyAtoms() {
 func modifyCamera() {
   let focalPoint = SIMD3<Float>(2, 2.8, 7)
   let rotation = Quaternion<Float>(
-    angle: Float.pi / 180 * 110,
+    angle: Float.pi / 180 * cameraAngleDegrees,
     axis: SIMD3(0, 1, 0))
   let cameraDistance: Float = 15
   
@@ -551,7 +552,8 @@ if !renderingOffline {
   //
   // Order of magnitude, 1 minute of video is 1 GB of GIF.
   let packagePath = FileManager.default.currentDirectoryPath
-  let filePath = "\(packagePath)/.build/video.gif"
+  let label = "\(Int(cameraAngleDegrees))"
+  let filePath = "\(packagePath)/.build/video_\(label).gif"
   let succeeded = FileManager.default.createFile(
     atPath: filePath,
     contents: data)
