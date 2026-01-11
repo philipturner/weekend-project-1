@@ -84,6 +84,8 @@ func anchorIDs(socketTopology: Topology) -> Set<UInt32> {
   }
   centerOfMass /= Float(socketTopology.atoms.count)
   
+  let atomsToAtomsMap = socketTopology.map(.atoms, to: .atoms)
+  
   var output: Set<UInt32> = []
   for atomID in socketTopology.atoms.indices {
     let atom = socketTopology.atoms[atomID]
@@ -91,11 +93,29 @@ func anchorIDs(socketTopology: Topology) -> Set<UInt32> {
     delta.z = 0
     
     let deltaLength = (delta * delta).sum().squareRoot()
-    if deltaLength > 2.5 {
-      if atom.atomicNumber == 1 {
-        output.insert(UInt32(atomID))
-      }
+    guard deltaLength > 2.5 else {
+      continue
     }
+    guard atom.atomicNumber == 1 else {
+      continue
+    }
+    
+    // Retrieve the other atom engaged in a covalent bond.
+    let atomsMap = atomsToAtomsMap[atomID]
+    guard atomsMap.count == 1 else {
+      fatalError("This should never happen.")
+    }
+    let carbonID = atomsMap[0]
+    let carbon = socketTopology.atoms[Int(carbonID)]
+    
+    // Exclude atoms on the (0001) surface.
+    var bondVector = atom.position - carbon.position
+    bondVector /= (bondVector * bondVector).sum().squareRoot()
+    if bondVector.z.magnitude > 0.5 {
+      continue
+    }
+    
+    output.insert(UInt32(atomID))
   }
   return output
 }
@@ -105,10 +125,6 @@ do {
   let socketAnchorIDs = anchorIDs(socketTopology: socketTopology)
   for atomID in socketAnchorIDs {
     var atom = socketTopology.atoms[Int(atomID)]
-    if atom.atomicNumber == 6 {
-      fatalError("uh oh")
-      atom.atomicNumber = 14
-    }
     if atom.atomicNumber == 1 {
       atom.atomicNumber = 9
     }
@@ -166,7 +182,7 @@ func modifyAtoms() {
 func modifyCamera() {
   let focalPoint = SIMD3<Float>(2, 2.5, 7)
   let rotation = Quaternion<Float>(
-    angle: Float.pi / 180 * 0,
+    angle: Float.pi / 180 * 90,
     axis: SIMD3(0, 1, 0))
   let cameraDistance: Float = 20
   
