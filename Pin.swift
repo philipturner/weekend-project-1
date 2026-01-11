@@ -12,7 +12,7 @@ struct Pin {
     
     _minimize()
     
-    rigidBody.centerOfMass += SIMD3(0, 0, -2.3)
+    rigidBody.centerOfMass += SIMD3(0, 0, -2.4)
   }
   
   var atoms: [Atom] {
@@ -38,11 +38,24 @@ struct Pin {
   }
   
   private static func handleIDs(topology: Topology) -> Set<UInt32> {
+    var centerOfMass: SIMD3<Float> = .zero
+    for atom in topology.atoms {
+      centerOfMass += atom.position
+    }
+    centerOfMass /= Float(topology.atoms.count)
+    
     var output: Set<UInt32> = []
     for atomID in topology.atoms.indices {
       let atom = topology.atoms[atomID]
-      if atom.position.z < 7 {
-        output.insert(UInt32(atomID))
+      if atom.position.z > 7,
+         atom.position.z < 7.3 {
+        var delta = atom.position - centerOfMass
+        delta.z = 0
+        
+        let deltaLength = (delta * delta).sum().squareRoot()
+        if deltaLength < 2 {
+          output.insert(UInt32(atomID))
+        }
       }
     }
     return output
