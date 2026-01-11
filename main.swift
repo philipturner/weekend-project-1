@@ -91,7 +91,41 @@ let socket = createSocket()
 
 // MARK: - Run Simulation
 
+// The net force, in piconewtons.
+let netForce: Float = 1000
 
+func apply(
+  netForce: Float,
+  forceField: MM4ForceField,
+  masses: [Float],
+  handleIDs: Set<UInt32>
+) {
+  
+}
+
+@MainActor
+func createForceField() -> MM4ForceField {
+  var parameters = MM4Parameters()
+  parameters.append(contentsOf: pin.parameters)
+  parameters.append(contentsOf: socket.parameters)
+  
+  var forceFieldDesc = MM4ForceFieldDescriptor()
+  forceFieldDesc.integrator = .multipleTimeStep
+  forceFieldDesc.parameters = parameters
+  let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
+  
+  var positions: [SIMD3<Float>] = []
+  positions += pin.rigidBody.positions
+  positions += socket.rigidBody.positions
+  forceField.positions = positions
+  
+  apply(
+    netForce: netForce,
+    forceField: forceField,
+    masses: parameters.atoms.masses,
+    handleIDs: pin.handleIDs)
+  return forceField
+}
 
 // MARK: - Launch Application
 
