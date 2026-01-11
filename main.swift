@@ -73,7 +73,11 @@ func createPart(range: ClosedRange<UInt32>) -> Topology {
   
   return topology
 }
-var pinTopology = createPart(range: 3606...11756)
+
+func createPin()
+
+let pin = createPart(range: <#T##ClosedRange<UInt32>#>)
+let pinTopology = createPart(range: 3606...11756)
 let socket6Topology = createPart(range: 23436...25955)
 let socket7Topology = createPart(range: 42439...45336)
 
@@ -81,67 +85,6 @@ let socket7Topology = createPart(range: 42439...45336)
 // "Socket.swift". Each accepts the raw topology and encapsulates the
 // atom selection.
 
-func handleIDs(pinTopology: Topology) -> Set<UInt32> {
-  var output: Set<UInt32> = []
-  for atomID in pinTopology.atoms.indices {
-    let atom = pinTopology.atoms[atomID]
-    if atom.position.z < 7 {
-      output.insert(UInt32(atomID))
-    }
-  }
-  return output
-}
-let pinHandleIDs = handleIDs(pinTopology: pinTopology)
-for handleID in pinHandleIDs {
-  var atom = pinTopology.atoms[Int(handleID)]
-  atom.atomicNumber = 8
-  pinTopology.atoms[Int(handleID)] = atom
-}
-
-func anchorIDs(socketTopology: Topology) -> Set<UInt32> {
-  var centerOfMass: SIMD3<Float> = .zero
-  for atom in socketTopology.atoms {
-    centerOfMass += atom.position
-  }
-  centerOfMass /= Float(socketTopology.atoms.count)
-  
-  let atomsToAtomsMap = socketTopology.map(.atoms, to: .atoms)
-  
-  var output: Set<UInt32> = []
-  for atomID in socketTopology.atoms.indices {
-    let atom = socketTopology.atoms[atomID]
-    var delta = atom.position - centerOfMass
-    delta.z = 0
-    
-    let deltaLength = (delta * delta).sum().squareRoot()
-    guard deltaLength > 2.5 else {
-      continue
-    }
-    guard atom.atomicNumber == 1 else {
-      continue
-    }
-    
-    // Retrieve the other atom engaged in a covalent bond.
-    let atomsMap = atomsToAtomsMap[atomID]
-    guard atomsMap.count == 1 else {
-      fatalError("This should never happen.")
-    }
-    let carbonID = atomsMap[0]
-    let carbon = socketTopology.atoms[Int(carbonID)]
-    
-    // Exclude atoms on the (0001) surface.
-    var bondVector = atom.position - carbon.position
-    bondVector /= (bondVector * bondVector).sum().squareRoot()
-    if bondVector.z.magnitude > 0.5 {
-      continue
-    }
-    
-    output.insert(UInt32(atomID))
-  }
-  return output
-}
-let socketTopology = socket7Topology
-let socketAnchorIDs = anchorIDs(socketTopology: socketTopology)
 
 // MARK: - Run Simulation
 
