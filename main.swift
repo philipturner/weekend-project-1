@@ -74,17 +74,20 @@ func createPart(range: ClosedRange<UInt32>) -> Topology {
   return topology
 }
 
-func createPin()
+@MainActor
+func createPin() -> Pin {
+  let pinTopology = createPart(range: 3606...11756)
+  return Pin(topology: pinTopology)
+}
 
-let pin = createPart(range: <#T##ClosedRange<UInt32>#>)
-let pinTopology = createPart(range: 3606...11756)
-let socket6Topology = createPart(range: 23436...25955)
-let socket7Topology = createPart(range: 42439...45336)
+@MainActor
+func createSocket() -> Socket {
+  let socket7Topology = createPart(range: 42439...45336)
+  return Socket(topology: socket7Topology)
+}
 
-// TODO: Abstract this away into separate files, "Pin.swift" and
-// "Socket.swift". Each accepts the raw topology and encapsulates the
-// atom selection.
-
+let pin = createPin()
+let socket = createSocket()
 
 // MARK: - Run Simulation
 
@@ -138,15 +141,15 @@ let application = createApplication()
 
 @MainActor
 func modifyAtoms() {
-  for atomID in pinTopology.atoms.indices {
-    let atom = pinTopology.atoms[atomID]
+  for atomID in pin.topology.atoms.indices {
+    let atom = pin.topology.atoms[atomID]
     application.atoms[atomID] = atom
   }
   
-  for atomID in socketTopology.atoms.indices {
-    let atom = socketTopology.atoms[atomID]
+  for atomID in socket.topology.atoms.indices {
+    let atom = socket.topology.atoms[atomID]
     
-    let offset = pinTopology.atoms.count
+    let offset = pin.topology.atoms.count
     application.atoms[offset + atomID] = atom
   }
 }
